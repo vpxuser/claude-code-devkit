@@ -1,0 +1,41 @@
+# PROJECT: [project-name]
+
+Stack: [primary languages/frameworks].
+Purpose: [one-line project mission].
+
+## Quick Facts
+
+- Build: `[build command]`
+- Test: `[test command]`
+- Lint: `[lint command]`
+
+## ALWAYS — 硬性规则
+
+- ALWAYS [rule 1]
+- ALWAYS [rule 2]
+- ALWAYS [rule 3]
+
+## NEVER — 禁止事项
+
+- NEVER [anti-pattern 1] — 改为 [alternative]
+- NEVER [anti-pattern 2] — 改为 [alternative]
+
+## Markdown 格式规范
+
+- 行宽上限 120 字符（代码块例外）
+- 列表项以 `-` 开头，缩进 2 空格
+- 代码块必须指定语言标签
+- Heading 层级不跳跃（H1→H2→H3）
+
+## 产出检查清单
+
+每产出或修改文件，静默自检：
+
+1. [check 1]
+2. [check 2]
+3. [check 3]
+
+## 关键参考文件
+
+- [Template 1]: `templates/[name].template`
+- [Rule 1]: `.claude/rules/[name].md`

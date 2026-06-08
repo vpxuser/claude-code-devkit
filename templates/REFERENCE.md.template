@@ -1,0 +1,31 @@
+# [Reference Title]
+
+> 一句话说明这份参考文档覆盖什么内容。
+
+## Purpose
+
+<!-- 1-2 句话解释这份文档的存在理由和适用场景。 -->
+
+## Scope
+
+<!-- 明确这份文档覆盖和不覆盖的范围。 -->
+
+- **Covered**: [topic A], [topic B]
+- **Not Covered**: [topic C] — see `[other-reference.md]` instead
+
+## Content
+
+<!-- 主体内容。按逻辑组织为 H2 section。 -->
+
+### [Section 1]
+
+[Content]
+
+### [Section 2]
+
+[Content]
+
+## Related
+
+- `[related-file.md]` — [relationship description]
+- `[related-file.md]` — [relationship description]

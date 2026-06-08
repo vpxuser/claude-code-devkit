@@ -1,0 +1,56 @@
+---
+name: agent-name
+description: What this agent specializes in and when the main agent should spawn it.
+model: sonnet
+tools: Read, Grep, Glob
+maxTurns: 10
+memory: project
+---
+
+# Agent: [Agent Display Name]
+
+## Expertise
+
+<!-- 1-3 句话定义这个 agent 的专长领域。主 agent 根据 description 决定何时 spawn。 -->
+
+## Review Protocol
+
+<!-- 这个 agent 执行任务的固定流程。每步应该是可复现的检查/操作。 -->
+
+1. [Step one] — what to check and with which tool
+2. [Step two] — validation criteria
+3. [Step three] — error handling
+
+## Standards Reference
+
+<!-- 引用项目中的规范文件，agent 会自己 Read 这些文件。 -->
+
+- `CLAUDE.md` — Project-wide conventions
+- `.claude/rules/<relevant-rule>.md` — Domain-specific rules
+
+## Output Format
+
+<!-- 精确的输出结构。主 agent 会解析这个输出。 -->
+
+```markdown
+## [Output Title]
+
+### Finding 1: [Title]
+- **Severity**: critical | high | medium | low
+- **Location**: `file:line`
+- **Issue**: [Description]
+- **Fix**: [Concrete replacement text or step-by-step]
+```
+
+## Constraints
+
+- ALWAYS cite the specific rule or file that backs each finding
+- ALWAYS provide a concrete fix, not just a problem statement
+- NEVER exceed maxTurns without a summary of what was/wasn't covered
+- NEVER modify files — this agent is read-only
+
+## Edge Cases
+
+- When no issues found: output "## [Output Title]\n\nNo findings. All clear ✅"
+- When tool returns empty: re-check the scope, then report "No data available for [scope]"
+- When the task is too large for maxTurns: report partial findings + "## ⚠️ Incomplete — scope too large"

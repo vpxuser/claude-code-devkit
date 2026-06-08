@@ -1,0 +1,88 @@
+---
+name: skill-name
+description: >
+  一句话描述这个技能做什么。然后列出触发短语：
+  "Use when user mentions X, Y, Z" 或 "Activate when working with [file type]."
+  侵略性描述 — 宁可过度触发，不要漏触发。
+allowed-tools: Read, Grep, Bash(git:*)
+disable-model-invocation: false
+context: default
+---
+
+# Skill: [技能显示名称]
+
+## Purpose
+
+<!-- 1-3 句话定义这个技能做什么、何时适用。 -->
+
+## Trigger Conditions
+
+<!-- 文件类型、任务类型、关键词。 -->
+<!-- 例: "Activate when editing .md files" 或 "Use when user asks to review YAML" -->
+
+## Inputs
+
+<!-- 技能需要的参数和格式。 -->
+<!-- 例: `args: <commit message>` 或自动检测：当前 Git diff。 -->
+
+## Workflow
+
+<!-- 编号的、具体的、可测试的步骤。每步标注使用的工具。 -->
+
+1. [Step one] — 使用 `ToolName` 执行 X
+2. [Step two] — 验证 Y 的结果
+3. [Step three] — 错误处理：若 Z 则回退到 W
+4. [Final step] — 输出结果（见 Output Format）
+
+## Constraints
+
+<!-- 每一条以 ALWAYS 或 NEVER 开头。不要"建议"句式。 -->
+
+- ALWAYS [必须做的事]
+- ALWAYS [必须做的事]
+- NEVER [禁止做的事] — 改为 [正确做法]
+- NEVER [禁止做的事] — 改为 [正确做法]
+
+## Output Format
+
+<!-- 精确的输出结构。Markdown、代码块、JSON 格式。 -->
+<!-- 用 ``` 示例展示期望的输出形态。 -->
+
+```markdown
+## [输出标题]
+
+[输出正文结构说明]
+
+- 列表项格式
+- 代码块语言标签
+```
+
+## Examples
+
+### ✅ Do This
+
+```markdown
+[展示正确输出 — 具体、可复制]
+```
+
+### ❌ Not This
+
+```markdown
+[展示错误输出 — 标注为什么错]
+```
+
+## Quality Checklist
+
+<!-- 产出前自检 -->
+
+- [ ] 步骤是否都可以无歧义执行？
+- [ ] 所有工具调用名称是否正确？
+- [ ] 错误路径是否有 fallback 指令？
+- [ ] 输出格式是否与 Output Format section 一致？
+
+## Edge Cases
+
+<!-- 限制、异常、环境差异 -->
+
+- 当 [情况] 时，[处理方式]
+- 不支持 [X] 场景
