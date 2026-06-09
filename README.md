@@ -18,6 +18,10 @@
 
 ---
 
+> ⭐ **If you find this useful, give it a star!** It helps others discover the project.
+
+---
+
 ## Why
 
 Claude Code 是强大的 AI 编程助手，但默认行为缺乏一致性：
@@ -184,6 +188,12 @@ claude-code-devkit/
 | P5 | Concrete Over Abstract | 具体示例 > 抽象描述 |
 | P6 | Compose, Don't Expand | 组合优于堆砌 |
 | P7 | Prefer Existing Tools | 优先包装成熟工具，不重写核心功能 |
+
+## Who's Using
+
+- [pentest-skills](https://github.com/vpxuser/pentest-skills) — 渗透测试技能套件
+
+*使用了 devkit？欢迎提交 PR 添加你的项目！*
 
 ## Contributing
 
