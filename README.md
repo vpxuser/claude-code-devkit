@@ -69,7 +69,9 @@ cd my-project
 
 ### 方式二：集成到已有项目（推荐）
 
-用 git submodule 管理 devkit，junction/symlink 映射到项目标准路径。devkit 更新时只需 `git submodule update --remote`，零手动复制。
+用 git submodule 管理 devkit。**Rules 复制通用规则，其他组件 junction 映射。**
+
+> ⚠️ **Rules 不要整目录 junction！** devkit 的 `*-writing.md` 规则只约束 devkit 开发，junction 会把它们加载到你的项目中，导致不相关的行为约束。
 
 ```bash
 cd your-project
@@ -77,34 +79,37 @@ cd your-project
 # 1. 添加 submodule
 git submodule add https://github.com/vpxuser/claude-code-devkit.git .claude/devkit
 
-# 2. 创建 junction/symlink（二选一）
+# 2. 复制通用规则（自动加载，选择性复制）
+mkdir -p .claude/rules
+cp .claude/devkit/.claude/rules/design-thinking.md .claude/rules/
+cp .claude/devkit/.claude/rules/progressive-disclosure.md .claude/rules/
+cp .claude/devkit/.claude/rules/markdown-output.md .claude/rules/
+cp .claude/devkit/.claude/rules/yaml-frontmatter.md .claude/rules/
+
+# 3. Junction 按需调用的组件（不会自动加载）
 
 # Windows (junction，无需管理员权限)
-powershell -Command "New-Item -ItemType Junction -Path '.claude\rules' -Target '.claude\devkit\.claude\rules'"
 powershell -Command "New-Item -ItemType Junction -Path '.claude\agents' -Target '.claude\devkit\.claude\agents'"
 powershell -Command "New-Item -ItemType Junction -Path '.claude\commands' -Target '.claude\devkit\.claude\commands'"
 powershell -Command "New-Item -ItemType Junction -Path '.claude\output-styles' -Target '.claude\devkit\.claude\output-styles'"
 powershell -Command "New-Item -ItemType Junction -Path 'templates' -Target '.claude\devkit\templates'"
-powershell -Command "New-Item -ItemType Junction -Path 'references' -Target '.claude\devkit\references'"
 # devkit skills（脚手架技能，逐个映射到 .claude/skills/）
 for skill in markdown-lint new-agent new-claude-md new-command new-hook new-output-style new-plugin new-reference new-skill new-workflow; do
   powershell -Command "New-Item -ItemType Junction -Path '.claude\skills\$skill' -Target '.claude\devkit\.claude\skills\$skill'"
 done
 
 # macOS/Linux (symlink)
-ln -s .claude/devkit/.claude/rules .claude/rules
 ln -s .claude/devkit/.claude/agents .claude/agents
 ln -s .claude/devkit/.claude/commands .claude/commands
 ln -s .claude/devkit/.claude/output-styles .claude/output-styles
 ln -s .claude/devkit/templates templates
-ln -s .claude/devkit/references references
 # devkit skills（脚手架技能，逐个映射到 .claude/skills/）
 for skill in $(ls .claude/devkit/.claude/skills/); do
   ln -s ../devkit/.claude/skills/$skill .claude/skills/$skill
 done
 ```
 
-更新：`git submodule update --remote .claude/devkit`
+更新：`git submodule update --remote .claude/devkit`，然后重新复制 rules。
 
 ## Commands
 
