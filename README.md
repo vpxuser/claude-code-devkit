@@ -71,6 +71,11 @@ powershell -Command "New-Item -ItemType Junction -Path '.claude\agents' -Target 
 powershell -Command "New-Item -ItemType Junction -Path '.claude\commands' -Target '.claude\devkit\.claude\commands'"
 powershell -Command "New-Item -ItemType Junction -Path '.claude\output-styles' -Target '.claude\devkit\.claude\output-styles'"
 powershell -Command "New-Item -ItemType Junction -Path 'templates' -Target '.claude\devkit\templates'"
+powershell -Command "New-Item -ItemType Junction -Path 'references' -Target '.claude\devkit\references'"
+# devkit skills（脚手架技能，逐个映射到 .claude/skills/）
+for skill in markdown-lint new-agent new-claude-md new-command new-hook new-output-style new-plugin new-reference new-skill new-workflow; do
+  powershell -Command "New-Item -ItemType Junction -Path '.claude\skills\$skill' -Target '.claude\devkit\.claude\skills\$skill'"
+done
 
 # macOS/Linux (symlink)
 ln -s .claude/devkit/.claude/rules .claude/rules
@@ -78,6 +83,11 @@ ln -s .claude/devkit/.claude/agents .claude/agents
 ln -s .claude/devkit/.claude/commands .claude/commands
 ln -s .claude/devkit/.claude/output-styles .claude/output-styles
 ln -s .claude/devkit/templates templates
+ln -s .claude/devkit/references references
+# devkit skills（脚手架技能，逐个映射到 .claude/skills/）
+for skill in $(ls .claude/devkit/.claude/skills/); do
+  ln -s ../devkit/.claude/skills/$skill .claude/skills/$skill
+done
 ```
 
 项目自有文件（如 `pentest-*` skills）放在 `.claude/skills/` 中，与 devkit junction 共存。
