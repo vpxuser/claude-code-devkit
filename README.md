@@ -41,22 +41,39 @@ L4: 模板校验 → 质量验证
 
 ## Quick Start
 
-### Install
+### Install (Git Submodule + Junction)
+
+推荐用 git submodule 管理 devkit，junction/symlink 映射到项目标准路径。devkit 更新时只需 `git submodule update --remote`，零手动复制。
 
 ```bash
-git clone https://github.com/vpxuser/claude-code-devkit.git
+cd your-project
+
+# 1. 添加 submodule
+git submodule add https://github.com/vpxuser/claude-code-devkit.git .claude/devkit
+
+# 2. 创建 junction/symlink（二选一）
+
+# Windows (junction，无需管理员权限)
+powershell -Command "New-Item -ItemType Junction -Path '.claude\rules' -Target '.claude\devkit\.claude\rules'"
+powershell -Command "New-Item -ItemType Junction -Path '.claude\agents' -Target '.claude\devkit\.claude\agents'"
+powershell -Command "New-Item -ItemType Junction -Path '.claude\commands' -Target '.claude\devkit\.claude\commands'"
+powershell -Command "New-Item -ItemType Junction -Path '.claude\output-styles' -Target '.claude\devkit\.claude\output-styles'"
+powershell -Command "New-Item -ItemType Junction -Path 'templates' -Target '.claude\devkit\templates'"
+
+# macOS/Linux (symlink)
+ln -s .claude/devkit/.claude/rules .claude/rules
+ln -s .claude/devkit/.claude/agents .claude/agents
+ln -s .claude/devkit/.claude/commands .claude/commands
+ln -s .claude/devkit/.claude/output-styles .claude/output-styles
+ln -s .claude/devkit/templates templates
 ```
 
-### Link to your project
+项目自有文件（如 `pentest-*` skills）放在 `.claude/skills/` 中，与 devkit junction 共存。
+
+### Update
 
 ```bash
-# Option A: Symlink (recommended)
-ln -s /path/to/claude-code-devkit/templates /path/to/your-project/templates
-ln -s /path/to/claude-code-devkit/.claude /path/to/your-project/.claude
-
-# Option B: Copy
-cp -r /path/to/claude-code-devkit/templates /path/to/your-project/
-cp -r /path/to/claude-code-devkit/.claude /path/to/your-project/
+git submodule update --remote .claude/devkit
 ```
 
 ### Use
@@ -136,6 +153,7 @@ claude-code-devkit/
 | Imperative Over Advisory | 祈使句，不用"应该/建议" |
 | Concrete Over Abstract | 具体示例 > 抽象描述 |
 | Compose, Don't Expand | 组合优于堆砌 |
+| Prefer Existing Tools | 优先包装成熟工具，不重写核心功能 |
 
 ## Official Fallback
 

@@ -47,6 +47,14 @@ description: "Design thinking rules — loaded every session, applies BEFORE wri
 - 技能间通过明确输入/输出契约协作
 - 公用逻辑抽取为 references/ 而非复制
 
+### P7: Prefer Existing Tools
+
+- 启动项目前先搜索：MCP Server、CLI 工具、现有 Skill/Agent
+- 优先包装成熟工具（如 nmap、curl、mitmproxy）而非重写其核心功能
+- 选择工具的标准：有社区维护、版本活跃、生产环境验证
+- AI 造轮子只在以上都没有合适方案时才考虑
+- 在 SKILL.md 的 References 中记录选用的外部工具及其版本
+
 ## 设计决策树
 
 每次接到新需求，按此顺序判断：
@@ -54,27 +62,31 @@ description: "Design thinking rules — loaded every session, applies BEFORE wri
 ```text
 User: "I need [capability]"
 
-1. Does this capability already exist in another skill?
-   YES → Tell user, suggest composing with it
+1. Does an existing tool already solve this?
+   YES → Wrap/orchestrate it, don't reimplement
    NO  → Go to 2
 
-2. Is this a fixed, repeatable workflow?
+2. Does this capability already exist in another skill?
+   YES → Tell user, suggest composing with it
+   NO  → Go to 3
+
+3. Is this a fixed, repeatable workflow?
    NO  → Is it a one-off task?
          YES → Just do it inline, no file needed
-         NO  → Go to 3
-   YES → Go to 3
+         NO  → Go to 4
+   YES → Go to 4
 
-3. Does it need supporting files (checklists, templates, scripts)?
+4. Does it need supporting files (checklists, templates, scripts)?
    YES → Skill (.claude/skills/<name>/SKILL.md)
-   NO  → Go to 4
+   NO  → Go to 5
 
-4. Does it need to be MANUALLY invoked only (Claude should never auto-trigger)?
+5. Does it need to be MANUALLY invoked only (Claude should never auto-trigger)?
    YES → Are the instructions complex (>50 lines)?
          YES → Skill with disable-model-invocation: true
          NO  → Command (.claude/commands/<name>.md)
-   NO  → Go to 5
+   NO  → Go to 6
 
-5. Is the task:
+6. Is the task:
    - Read-only analysis of existing files? → Agent (.claude/agents/<name>.md)
    - Multiple agents orchestrated dynamically? → Workflow (.claude/workflows/<name>.js)
    - Context-aware interactive workflow? → Skill (.claude/skills/<name>/SKILL.md)
@@ -116,3 +128,5 @@ User: "I need [capability]"
 | 嵌套 if-then 迷宫 | 不可测试，不可维护 | 拆分条件分支为独立技能 |
 | "以及更多..." | 范围无限膨胀 | 明确声明 scope 边界 |
 | 提供建议而非指令 | Claude 忽略或执行不一致 | 祈使句 + 具体工具名 |
+| 重写已有成熟工具 | 可靠性差、维护成本高 | 包装 nmap/curl/sqlmap 等成熟工具 |
+| 跳过工具选型 | "AI 能写"不等于"应该写" | 先搜索 MCP Server/CLI/现有 Skill |
