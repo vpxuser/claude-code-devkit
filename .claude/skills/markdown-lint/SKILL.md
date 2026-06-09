@@ -24,11 +24,11 @@ version: 1.0.0
 
 ## Inputs
 
-- `$ARGUMENTS` (可选): 指定文件路径或 glob 模式，默认检查所有 `skills/**/*.md`
+- `$ARGUMENTS` (可选): 指定文件路径或 glob 模式，默认检查所有 `.md` 文件
 
 ## Workflow
 
-1. 确定检查范围：若 `$ARGUMENTS` 非空则用 `$ARGUMENTS`，否则用 `"skills/**/*.md" "templates/**/*.md" "CLAUDE.md" ".claude/rules/*.md"`
+1. 确定检查范围：若 `$ARGUMENTS` 非空则用 `$ARGUMENTS`，否则用 `"skills/**/*.md" "templates/**/*.md" "CLAUDE.md" ".claude/rules/*.md" ".claude/agents/*.md" ".claude/commands/*.md" ".claude/output-styles/*.md"`
 2. 运行检查：`npx markdownlint <files> 2>&1`
 3. 解析输出：
    - 退出码 0 = 全部通过 → 报告成功

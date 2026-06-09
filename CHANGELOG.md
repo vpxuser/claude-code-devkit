@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-09
+
+### Added
+
+- `scripts/` 目录：质量检查脚本
+  - `check-limits.sh`：行数限制检查（覆盖所有 devkit 产出物）
+  - `pre-commit.sh`：Git pre-commit hook（markdownlint + 行数检查）
+- `templates/package.json.template`：项目配置模板（npm scripts）
+- `templates/.markdownlint.json.template`：Markdownlint 配置模板
+- CLAUDE.md 新增 ALWAYS 约束：
+  - 修改 .md 文件后运行 `npx markdownlint <file>`
+  - 完成任务前运行 `npm run check:all`
+  - 提交前运行 `npm run check:all`
+- 产出检查清单扩展：覆盖所有 .md 文件类型
+
+### Changed
+
+- `markdown-lint` skill 检查范围扩展：从 `skills/**/*.md` 扩展到所有 `.md` 文件
+- README 更新：
+  - Project Structure 新增 scripts/ 目录
+  - Quick Start 新增质量检查设置步骤
+  - Supported File Types 新增 Scripts 列
+  - Commands 新增 Quality 检查命令
+
 ## [1.1.0] - 2026-06-09
 
 ### Added

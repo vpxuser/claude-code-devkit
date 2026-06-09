@@ -75,6 +75,9 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
 - ALWAYS 在 section 标题前后留一个空行
 - ALWAYS 每个文件只包含一个 `# H1` 标题
 - ALWAYS 给出"✅ 正确示例"和"❌ 错误示例"对比
+- ALWAYS 修改 .md 文件后运行 `npx markdownlint <file>` 确保格式通过
+- ALWAYS 完成任务前运行 `npm run check:all` 确保所有文件符合行数限制
+- ALWAYS 提交前运行 `npm run check:all` 确保格式和行数限制通过
 
 ## NEVER — 禁止事项
 

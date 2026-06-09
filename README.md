@@ -43,17 +43,19 @@ L4: 模板校验 → reviewer agents       （质量验证）
 
 ## Supported File Types
 
-| 文件类型 | Template | Rule | Output Style | Reviewer | Creator |
-|----------|:--------:|:----:|:------------:|:--------:|:-------:|
-| SKILL.md | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AGENT.md | ✅ | ✅ | ✅ | ✅ | ✅ |
-| COMMAND.md | ✅ | ✅ | ✅ | ✅ | ✅ |
-| WORKFLOW.js | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HOOK.sh | ✅ | ✅ | ✅ | ✅ | ✅ |
-| plugin.json | ✅ | ✅ | ✅ | ✅ | ✅ |
-| REFERENCE.md | ✅ | ✅ | ✅ | ✅ | ✅ |
-| OUTPUT-STYLE.md | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CLAUDE.md | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 文件类型 | Template | Rule | Output Style | Reviewer | Creator | Scripts |
+|----------|:--------:|:----:|:------------:|:--------:|:-------:|:-------:|
+| SKILL.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AGENT.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| COMMAND.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| WORKFLOW.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| HOOK.sh | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| plugin.json | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| REFERENCE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| OUTPUT-STYLE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CLAUDE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| package.json | ✅ | — | — | — | — | — |
+| .markdownlint.json | ✅ | — | — | — | — | — |
 
 ## Quick Start
 
@@ -62,7 +64,18 @@ L4: 模板校验 → reviewer agents       （质量验证）
 ```bash
 git clone https://github.com/vpxuser/claude-code-devkit.git my-project
 cd my-project
-# 直接在 .claude/skills/ 中创建项目技能，模板在 templates/ 中
+
+# 1. 安装依赖
+npm install
+
+# 2. 复制配置文件
+cp templates/package.json.template package.json
+cp templates/.markdownlint.json.template .markdownlint.json
+
+# 3. 安装 pre-commit hook
+npm run precommit:install
+
+# 4. 直接在 .claude/skills/ 中创建项目技能，模板在 templates/ 中
 ```
 
 更新：`git pull origin main`
@@ -86,7 +99,22 @@ cp .claude/devkit/.claude/rules/progressive-disclosure.md .claude/rules/
 cp .claude/devkit/.claude/rules/markdown-output.md .claude/rules/
 cp .claude/devkit/.claude/rules/yaml-frontmatter.md .claude/rules/
 
-# 3. Junction 按需调用的组件（不会自动加载）
+# 3. 复制质量检查脚本
+mkdir -p scripts
+cp .claude/devkit/scripts/check-limits.sh scripts/
+cp .claude/devkit/scripts/pre-commit.sh scripts/
+
+# 4. 复制配置文件
+cp .claude/devkit/templates/package.json.template package.json
+cp .claude/devkit/templates/.markdownlint.json.template .markdownlint.json
+
+# 5. 安装依赖
+npm install
+
+# 6. 安装 pre-commit hook
+npm run precommit:install
+
+# 7. Junction 按需调用的组件（不会自动加载）
 
 # Windows (junction，无需管理员权限)
 powershell -Command "New-Item -ItemType Junction -Path '.claude\agents' -Target '.claude\devkit\.claude\agents'"
@@ -109,7 +137,7 @@ for skill in $(ls .claude/devkit/.claude/skills/); do
 done
 ```
 
-更新：`git submodule update --remote .claude/devkit`，然后重新复制 rules。
+更新：`git submodule update --remote .claude/devkit`，然后重新复制 rules 和 scripts。
 
 ## Commands
 
@@ -135,6 +163,13 @@ done
 /review-reference path/to/REFERENCE.md
 /review-output-style path/to/OUTPUT-STYLE.md
 /review-claude-md path/to/CLAUDE.md
+
+# Quality — 质量检查
+npm run lint:md              # Markdown 格式检查
+npm run lint:md:fix          # 自动修复 Markdown 格式
+npm run check:limits         # 行数限制检查
+npm run check:all            # 全部检查（格式 + 行数）
+npm run test                 # 同 check:all
 ```
 
 ## Project Structure
@@ -152,7 +187,12 @@ claude-code-devkit/
 │   ├── WORKFLOW.js.template
 │   ├── HOOK.sh.template
 │   ├── plugin.template.json
+│   ├── package.json.template
+│   ├── .markdownlint.json.template
 │   └── README.md.template
+├── scripts/                               # 质量检查脚本
+│   ├── check-limits.sh                    # 行数限制检查
+│   └── pre-commit.sh                      # Git pre-commit hook
 ├── .claude/
 │   ├── rules/                             # 行为约束（13 条规则）
 │   │   ├── design-thinking.md             # 设计思维（7 条原则）

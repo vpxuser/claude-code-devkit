@@ -1,0 +1,21 @@
+{
+  "name": "[project-name]",
+  "version": "1.0.0",
+  "description": "[project description]",
+  "scripts": {
+    "lint:md": "markdownlint --config .markdownlint.json \"skills/**/*.md\" \"templates/**/*.md\" \"**/*.md\" --ignore node_modules",
+    "lint:md:fix": "markdownlint --config .markdownlint.json --fix \"skills/**/*.md\" \"templates/**/*.md\" \"**/*.md\" --ignore node_modules",
+    "check:limits": "bash scripts/check-limits.sh",
+    "check:all": "npm run lint:md && npm run check:limits",
+    "test": "npm run check:all",
+    "precommit:install": "cp scripts/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo 'Pre-commit hook installed'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "markdownlint": "^0.37.0",
+    "markdownlint-cli": "^0.43.0"
+  }
+}
