@@ -41,9 +41,21 @@ L4: 模板校验 → 质量验证
 
 ## Quick Start
 
-### Install (Git Submodule + Junction)
+### 方式一：直接使用（新项目 / devkit 贡献者）
 
-推荐用 git submodule 管理 devkit，junction/symlink 映射到项目标准路径。devkit 更新时只需 `git submodule update --remote`，零手动复制。
+直接 clone devkit，在其中开发。适合从零开始的项目或 devkit 本身的维护。
+
+```bash
+git clone https://github.com/vpxuser/claude-code-devkit.git my-project
+cd my-project
+# 直接在 .claude/skills/ 中创建项目技能，模板在 templates/ 中
+```
+
+更新：`git pull origin main`
+
+### 方式二：集成到已有项目（推荐）
+
+用 git submodule 管理 devkit，junction/symlink 映射到项目标准路径。devkit 更新时只需 `git submodule update --remote`，零手动复制。
 
 ```bash
 cd your-project
@@ -70,11 +82,7 @@ ln -s .claude/devkit/templates templates
 
 项目自有文件（如 `pentest-*` skills）放在 `.claude/skills/` 中，与 devkit junction 共存。
 
-### Update
-
-```bash
-git submodule update --remote .claude/devkit
-```
+更新：`git submodule update --remote .claude/devkit`
 
 ### Use
 
