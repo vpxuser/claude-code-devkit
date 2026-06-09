@@ -2,27 +2,39 @@
 
 # 🛠️ claude-code-devkit
 
-**Claude Code 开发规范工具箱**
+**The missing style guide for Claude Code**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/vpxuser/claude-code-devkit?style=social)](https://github.com/vpxuser/claude-code-devkit/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/vpxuser/claude-code-devkit?style=social)](https://github.com/vpxuser/claude-code-devkit/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/vpxuser/claude-code-devkit)](https://github.com/vpxuser/claude-code-devkit/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/vpxuser/claude-code-devkit)](https://github.com/vpxuser/claude-code-devkit/commits/main)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-orange.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![File Types](https://img.shields.io/badge/File_Types-9-green.svg)](#supported-file-types)
 
-*Templates · Rules · Output Styles · Reviewers*
+*Templates · Rules · Output Styles · Reviewers · Scaffolding*
 
 </div>
 
 ---
 
+## Why
+
+Claude Code 是强大的 AI 编程助手，但默认行为缺乏一致性：
+
+- Skills 写法因人而异，质量参差不齐
+- 没有统一的审查标准，错误难以发现
+- 每个项目都从零开始，重复劳动
+
+**claude-code-devkit** 提供四层约束体系，让 Claude Code 的产出物**可预测、可审查、可复用**。
+
 ## What
 
-为 Claude Code 的所有文件类型提供**四层约束**体系：
-
 ```
-L1: 思考模式 → 设计决策过程
-L2: 行为约束 → 怎么写、怎么设计
-L3: 输出模板 → 结构约束
-L4: 模板校验 → 质量验证
+L1: 思考模式 → design-thinking.md    （设计决策过程）
+L2: 行为约束 → *.md rules            （怎么写、怎么设计）
+L3: 输出模板 → templates/            （结构约束）
+L4: 模板校验 → reviewer agents       （质量验证）
 ```
 
 ## Supported File Types
@@ -42,8 +54,6 @@ L4: 模板校验 → 质量验证
 ## Quick Start
 
 ### 方式一：直接使用（新项目 / devkit 贡献者）
-
-直接 clone devkit，在其中开发。适合从零开始的项目或 devkit 本身的维护。
 
 ```bash
 git clone https://github.com/vpxuser/claude-code-devkit.git my-project
@@ -90,14 +100,12 @@ for skill in $(ls .claude/devkit/.claude/skills/); do
 done
 ```
 
-项目自有文件（如 `pentest-*` skills）放在 `.claude/skills/` 中，与 devkit junction 共存。
-
 更新：`git submodule update --remote .claude/devkit`
 
-### Use
+## Commands
 
 ```bash
-# Create
+# Create — 脚手架
 /new-skill my-skill          # 创建新 Skill
 /new-agent my-agent          # 创建新 Agent
 /new-command my-command      # 创建新 Command
@@ -108,7 +116,7 @@ done
 /new-output-style my-style   # 创建新 Output Style
 /new-claude-md my-project    # 创建新 CLAUDE.md
 
-# Review
+# Review — 质量校验
 /review-skill path/to/SKILL.md
 /review-agent path/to/AGENT.md
 /review-command path/to/COMMAND.md
@@ -137,8 +145,8 @@ claude-code-devkit/
 │   ├── plugin.template.json
 │   └── README.md.template
 ├── .claude/
-│   ├── rules/                             # 行为约束
-│   │   ├── design-thinking.md             # 设计思维
+│   ├── rules/                             # 行为约束（13 条规则）
+│   │   ├── design-thinking.md             # 设计思维（7 条原则）
 │   │   ├── progressive-disclosure.md      # 渐进式披露
 │   │   ├── yaml-frontmatter.md            # YAML 规范
 │   │   ├── markdown-output.md             # Markdown 规范
@@ -151,27 +159,41 @@ claude-code-devkit/
 │   │   ├── workflow-writing.md            # Workflow 编写
 │   │   ├── hook-writing.md                # Hook 编写
 │   │   └── plugin-writing.md              # Plugin 编写
-│   ├── output-styles/                     # 输出风格
-│   ├── agents/                            # Reviewer Agents
-│   ├── skills/                            # Creator Skills
-│   └── commands/                          # Review Commands
+│   ├── output-styles/                     # 输出风格（6 个）
+│   ├── agents/                            # Reviewer Agents（9 个）
+│   ├── skills/                            # Creator Skills（10 个）
+│   └── commands/                          # Review Commands（10 个）
 ├── references/
 │   └── philosophy.md                      # 设计哲学
+├── .github/
+│   ├── ISSUE_TEMPLATE/                    # Issue 模板
+│   └── PULL_REQUEST_TEMPLATE.md           # PR 模板
+├── CHANGELOG.md
 ├── LICENSE
 └── README.md
 ```
 
 ## Design Principles
 
-| 原则 | 说明 |
-|------|------|
-| Generate First, Clarify Second | 先产出草稿再澄清 |
-| One Job Per Skill | 一个技能只做一件事 |
-| Pushy by Default | 宁可过度触发，不可漏触发 |
-| Imperative Over Advisory | 祈使句，不用"应该/建议" |
-| Concrete Over Abstract | 具体示例 > 抽象描述 |
-| Compose, Don't Expand | 组合优于堆砌 |
-| Prefer Existing Tools | 优先包装成熟工具，不重写核心功能 |
+| # | 原则 | 说明 |
+|---|------|------|
+| P1 | Generate First, Clarify Second | 先产出草稿再澄清 |
+| P2 | One Job Per Skill | 一个技能只做一件事 |
+| P3 | Pushy by Default | 宁可过度触发，不可漏触发 |
+| P4 | Imperative Over Advisory | 祈使句，不用"应该/建议" |
+| P5 | Concrete Over Abstract | 具体示例 > 抽象描述 |
+| P6 | Compose, Don't Expand | 组合优于堆砌 |
+| P7 | Prefer Existing Tools | 优先包装成熟工具，不重写核心功能 |
+
+## Contributing
+
+欢迎贡献！请阅读 [CONTRIBUTING.md](.github/CONTRIBUTING.md)。
+
+1. Fork 本仓库
+2. 创建 feature 分支：`git checkout -b feat/my-feature`
+3. 提交更改：`git commit -m "feat: add my-feature"`
+4. 推送：`git push origin feat/my-feature`
+5. 创建 Pull Request
 
 ## Official Fallback
 
@@ -179,4 +201,4 @@ claude-code-devkit/
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © [vpxuser](https://github.com/vpxuser)
