@@ -60,7 +60,55 @@ L4: 模板校验 → reviewer agents       （质量验证）
 
 ## Quick Start
 
-### 方式一：直接使用（新项目 / devkit 贡献者）
+### 方式一：一键安装（推荐）
+
+用安装脚本将 devkit 部署到已有项目。**纯复制，无 symlink/junction，跨平台。**
+
+```bash
+cd your-project
+
+# 1. 克隆 devkit（或下载 release）
+git clone https://github.com/vpxuser/claude-code-devkit.git /tmp/devkit
+
+# 2. 一键部署（全部组件）
+bash /tmp/devkit/scripts/install.sh deploy /tmp/devkit
+
+# 3. 安装依赖
+npm install
+```
+
+**选择性部署** — 只装需要的部分：
+
+```bash
+# 只装通用规则
+bash /tmp/devkit/scripts/install.sh deploy /tmp/devkit --universal
+
+# 只装 skills + agents
+bash /tmp/devkit/scripts/install.sh deploy /tmp/devkit --skills --agents
+
+# 预览（不实际复制）
+bash /tmp/devkit/scripts/install.sh deploy /tmp/devkit --dry-run
+
+# 强制覆盖已有文件
+bash /tmp/devkit/scripts/install.sh deploy /tmp/devkit --force
+```
+
+**管理已部署的 devkit：**
+
+```bash
+# 查看已部署文件及状态
+bash scripts/install.sh list
+
+# 卸载（保留配置文件）
+bash scripts/install.sh uninstall --keep-config
+
+# 完全卸载
+bash scripts/install.sh uninstall
+```
+
+**可用选项：** `--universal` `--rules` `--skills` `--agents` `--commands` `--output-styles` `--templates` `--scripts` `--configs` `--hooks` `--references` `--claudemd` `--dry-run` `--force`
+
+### 方式二：直接使用（新项目 / devkit 贡献者）
 
 ```bash
 git clone https://github.com/vpxuser/claude-code-devkit.git my-project
@@ -81,67 +129,6 @@ npm run precommit:install
 ```
 
 更新：`git pull origin main`
-
-### 方式二：集成到已有项目（推荐）
-
-用 git submodule 管理 devkit。**Rules 复制通用规则，其他组件 junction 映射。**
-
-> ⚠️ **Rules 不要整目录 junction！** devkit 的 `*-writing.md` 规则只约束 devkit 开发，junction 会把它们加载到你的项目中，导致不相关的行为约束。
-
-```bash
-cd your-project
-
-# 1. 添加 submodule
-git submodule add https://github.com/vpxuser/claude-code-devkit.git .claude/devkit
-
-# 2. 复制通用规则（自动加载，选择性复制）
-mkdir -p .claude/rules
-cp .claude/devkit/.claude/rules/design-thinking.md .claude/rules/
-cp .claude/devkit/.claude/rules/progressive-disclosure.md .claude/rules/
-cp .claude/devkit/.claude/rules/markdown-output.md .claude/rules/
-cp .claude/devkit/.claude/rules/yaml-frontmatter.md .claude/rules/
-
-# 3. 复制质量检查脚本
-mkdir -p scripts
-cp .claude/devkit/scripts/check-limits.sh scripts/
-cp .claude/devkit/scripts/check-placement.sh scripts/
-cp .claude/devkit/scripts/pre-commit.sh scripts/
-
-# 4. 复制配置文件
-cp .claude/devkit/templates/package.json.template package.json
-cp .claude/devkit/templates/.markdownlint.json.template .markdownlint.json
-cp .claude/devkit/templates/.mcp.json.template .mcp.json
-
-# 5. 安装依赖
-npm install
-
-# 6. 安装 pre-commit hook
-npm run precommit:install
-
-# 7. Junction 按需调用的组件（不会自动加载）
-
-# Windows (junction，无需管理员权限)
-powershell -Command "New-Item -ItemType Junction -Path '.claude\agents' -Target '.claude\devkit\.claude\agents'"
-powershell -Command "New-Item -ItemType Junction -Path '.claude\commands' -Target '.claude\devkit\.claude\commands'"
-powershell -Command "New-Item -ItemType Junction -Path '.claude\output-styles' -Target '.claude\devkit\.claude\output-styles'"
-powershell -Command "New-Item -ItemType Junction -Path 'templates' -Target '.claude\devkit\templates'"
-# devkit skills（脚手架技能，逐个映射到 .claude/skills/）
-for skill in markdown-lint new-agent new-claude-md new-command new-hook new-output-style new-plugin new-reference new-skill new-workflow; do
-  powershell -Command "New-Item -ItemType Junction -Path '.claude\skills\$skill' -Target '.claude\devkit\.claude\skills\$skill'"
-done
-
-# macOS/Linux (symlink)
-ln -s .claude/devkit/.claude/agents .claude/agents
-ln -s .claude/devkit/.claude/commands .claude/commands
-ln -s .claude/devkit/.claude/output-styles .claude/output-styles
-ln -s .claude/devkit/templates templates
-# devkit skills（脚手架技能，逐个映射到 .claude/skills/）
-for skill in $(ls .claude/devkit/.claude/skills/); do
-  ln -s ../devkit/.claude/skills/$skill .claude/skills/$skill
-done
-```
-
-更新：`git submodule update --remote .claude/devkit`，然后重新复制 rules 和 scripts。
 
 ## Commands
 
