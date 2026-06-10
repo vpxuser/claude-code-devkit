@@ -91,8 +91,15 @@ check_file() {
           fi
           ;;
         references)
-          if ! echo "$BASENAME" | grep -qE '\.md$'; then
-            echo "❌ $FILE: references/ only allows .md files"
+          if ! echo "$BASENAME" | grep -qE '\.(md|txt)$'; then
+            echo "❌ $FILE: references/ only allows .md/.txt files"
+            VIOLATED=1
+          fi
+          ;;
+        data)
+          # data/ allows wordlists, configs, and other data files (.txt, .json, .yaml, .csv, .xml)
+          if ! echo "$BASENAME" | grep -qE '\.(txt|json|yaml|yml|csv|xml|dat)$'; then
+            echo "❌ $FILE: data/ only allows .txt/.json/.yaml/.yml/.csv/.xml/.dat files"
             VIOLATED=1
           fi
           ;;
@@ -100,7 +107,7 @@ check_file() {
           # templates/ allows any file type
           ;;
         *)
-          echo "❌ $FILE: unknown skill subdirectory '$SUBDIR' (allowed: scripts/, references/, templates/)"
+          echo "❌ $FILE: unknown skill subdirectory '$SUBDIR' (allowed: scripts/, references/, data/, templates/)"
           VIOLATED=1
           ;;
       esac

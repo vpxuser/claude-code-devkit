@@ -17,17 +17,19 @@ description: "SKILL.md 编写规范 — 对 skills/ 和 templates/ 下的 SKILL.
 .claude/skills/<name>/
 ├── SKILL.md              # 必选 — 技能定义（根目录仅此文件）
 ├── scripts/              # 可选 — 辅助脚本（.sh/.py/.js）
-├── references/           # 可选 — 参考文档（.md）
+├── references/           # 可选 — 参考文档（.md/.txt）
+├── data/                 # 可选 — 数据文件（.txt/.json/.yaml/.csv/.xml/.dat）
 └── templates/            # 可选 — 该技能专属的模板文件
 ```
 
 - ALWAYS 根目录只放 `SKILL.md`，其他文件必须放入对应子目录
 - ALWAYS `scripts/` 只放 `.sh`、`.py`、`.js` 可执行脚本
-- ALWAYS `references/` 只放 `.md` 参考文档
+- ALWAYS `references/` 只放 `.md`、`.txt` 参考文档
+- ALWAYS `data/` 放数据文件：字典、配置、CSV 等（`.txt/.json/.yaml/.csv/.xml/.dat`）
 - ALWAYS `templates/` 放该技能专属的模板（任意类型）
 - NEVER 在 skill 根目录放置辅助文件（如 `helper.sh`、`notes.md`）— 放入对应子目录
 - NEVER 在子目录中放置不属于该目录的文件类型（如 `references/` 中放 `.sh`）
-- NEVER 创建 `scripts/`、`references/`、`templates/` 以外的子目录
+- NEVER 创建 `scripts/`、`references/`、`data/`、`templates/` 以外的子目录
 
 ## 指令写作原则
 

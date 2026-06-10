@@ -23,7 +23,8 @@ context: default
 .claude/skills/<name>/
 ├── SKILL.md              # 技能定义
 ├── scripts/              # 辅助脚本（.sh/.py/.js）
-├── references/           # 参考文档（.md）
+├── references/           # 参考文档（.md/.txt）
+├── data/                 # 数据文件（.txt/.json/.yaml/.csv/.xml/.dat）
 └── templates/            # 该技能专属的模板
 ```
 
