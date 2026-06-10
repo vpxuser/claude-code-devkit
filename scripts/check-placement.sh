@@ -28,12 +28,6 @@ check_file() {
         VIOLATED=1
       fi
       ;;
-    *-agent.md)
-      if ! echo "$FILE" | grep -qE '^\.claude/agents/'; then
-        echo "❌ $FILE: Agent files must be in .claude/agents/"
-        VIOLATED=1
-      fi
-      ;;
     .mcp.json|mcp.json)
       # MCP config must be in project root (not in subdirectories)
       local DIR=$(dirname "$FILE")
@@ -63,18 +57,6 @@ check_file() {
     if ! echo "$FILE" | grep -qE '^\.claude/hooks/'; then
       echo "❌ $FILE: .sh in .claude/ must be in .claude/hooks/"
       VIOLATED=1
-    fi
-  fi
-
-  # Check .md files in .claude/ context
-  if echo "$BASENAME" | grep -qE '\.md$' && echo "$FILE" | grep -qE '^\.claude/'; then
-    # Already handled SKILL.md and AGENT.md above
-    if [ "$BASENAME" != "SKILL.md" ] && [ "$BASENAME" != "AGENT.md" ] && ! echo "$BASENAME" | grep -qE '\-agent\.md$'; then
-      if echo "$FILE" | grep -qE '^\.claude/(commands|output-styles|rules|skills|agents)/'; then
-        : # correct
-      else
-        echo "⚠️ $FILE: unexpected .md in .claude/"
-      fi
     fi
   fi
 
