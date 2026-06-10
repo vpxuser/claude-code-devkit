@@ -50,7 +50,7 @@ tags: [devkit, claude-md, creation]
 - ALWAYS 提供清晰的项目描述
 - ALWAYS 包含开发规范
 - NEVER 跳过项目信息
-- NEVER 创建超过 200 行的 CLAUDE.md
+- NEVER 创建超过 150 行的 CLAUDE.md
 - NEVER 内嵌大段参考内容 — 改为用文件路径指向
 
 ## Output Format

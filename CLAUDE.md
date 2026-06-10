@@ -30,10 +30,22 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
 | 只读审查/分析，独立上下文 | **Agent** | `.claude/agents/<name>.md` |
 | 多 Agent 编排，动态流程 | **Workflow** | `.claude/workflows/<name>.js` |
 | 按需加载的长文档 | **Reference** | `references/<name>.md` |
+| 文件编写规范/思维框架 | **Rule** | `.claude/rules/<name>.md` |
 
 ### 复杂度预算（超过即拆分）
 
-| Skill ≤ 500 行 | CLAUDE.md ≤ 150 行 | Workflow ≤ 12 步骤 | Agent ≤ 6 tools |
+| Skill ≤ 500 行 | CLAUDE.md ≤ 150 行 | Workflow ≤ 12 步骤 | Agent ≤ 6 tools | Rule ≤ 150 行 |
+
+### 约束体系：L1-L4 四层架构
+
+> 每个文件类型都经过四层约束，从思维到产出逐层收窄。
+
+| 层级 | 维度 | 载体 | 回答什么 |
+| --- | --- | --- | --- |
+| L1 | 思考模式 | `design-thinking.md` | **怎么想** — 设计决策过程、决策树、复杂度预算 |
+| L2 | 行为约束 | `.claude/rules/*.md` | **怎么做** — 写作风格、指令模式、设计规范 |
+| L3 | 输出模板 | `templates/*.template` | **长什么样** — 结构约束、必选 section、字段顺序 |
+| L4 | 模板校验 | `.claude/agents/*-reviewer.md` | **写对没有** — 质量验证、格式检查、一致性审查 |
 
 ### 渐进式披露：信息放哪层
 
@@ -61,13 +73,16 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
   - Command.md → `templates/COMMAND.md.template`
   - Output Style.md → `templates/OUTPUT-STYLE.md.template`
   - .mcp.json → `templates/.mcp.json.template`
+  - settings.json → `templates/settings.json.template`
   - README.md → `templates/README.md.template`
+  - Rule.md → `templates/RULE.md.template`
 - ALWAYS 将文件放在正确的目录：
   - Skills → `skills/` 或 `.claude/skills/`
   - Agents → `.claude/agents/`
   - Commands → `.claude/commands/`
   - Output Styles → `.claude/output-styles/`
   - References → `references/` 或 `skills/<name>/references/`
+  - Rules → `.claude/rules/`
 - ALWAYS 将 SKILL.md 控制在 500 行以内；长参考内容拆分到 `references/` 子目录
 - ALWAYS CLAUDE.md 控制在 150 行以内；超限内容拆分到 `.claude/rules/`
 - ALWAYS 在 YAML frontmatter 中填写 `name` 和 `description`（description 要"侵略性"——列出触发短语）
@@ -111,19 +126,17 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
 8. 总行数是否超限？Skill/Agent ≤ 500，CLAUDE.md ≤ 150
 9. `.mcp.json` 是否符合 `mcp-writing.md` 规范？
 
-## 模板→规则 覆盖矩阵
+## L1-L5 覆盖矩阵
 
-| 文件类型 | 模板 | 路径规则 (auto-triggered) |
-| --- | --- | --- |
-| SKILL.md | `templates/SKILL.md.template` | `skill-writing.md` |
-| Agent.md | `templates/AGENT.md.template` | `agent-writing.md` |
-| CLAUDE.md | `templates/CLAUDE.md.template` | `claude-md-writing.md` |
-| Reference.md | `templates/REFERENCE.md.template` | `reference-writing.md` |
-| Command.md | `templates/COMMAND.md.template` | `command-writing.md` |
-| Output Style.md | `templates/OUTPUT-STYLE.md.template` | `output-style-writing.md` |
-| Workflow.js | `templates/WORKFLOW.js.template` | `workflow-writing.md` |
-| Hook.sh | `templates/HOOK.sh.template` | `hook-writing.md` |
-| plugin.json | `templates/plugin.template.json` | `plugin-writing.md` |
-| .mcp.json | `templates/.mcp.json.template` | `mcp-writing.md` |
-| README.md | `templates/README.md.template` | `markdown-output.md` |
-| ALL .md | — | `markdown-output.md` + `yaml-frontmatter.md` |
+| 文件类型 | L3: 模板 | L2: 行为规则 | L4: 校验 Agent | L5: 脚本 |
+| --- | --- | --- | --- | --- |
+| SKILL.md | `SKILL.md.template` | `skill-writing.md` | `skill-reviewer.md` | `check-constraints.sh` |
+| Agent.md | `AGENT.md.template` | `agent-writing.md` | `agent-reviewer.md` | `check-constraints.sh` |
+| CLAUDE.md | `CLAUDE.md.template` | `claude-md-writing.md` | `claude-md-reviewer.md` | `check-constraints.sh` |
+| Command.md | `COMMAND.md.template` | `command-writing.md` | `command-reviewer.md` | `check-constraints.sh` |
+| Output Style | `OUTPUT-STYLE.md.template` | `output-style-writing.md` | `output-style-reviewer.md` | `check-constraints.sh` |
+| Rule.md | `RULE.md.template` | `rule-writing.md` | `rule-reviewer.md` | `check-constraints.sh` |
+| plugin.json | `plugin.template.json` | `plugin-writing.md` | `plugin-reviewer.md` | `check-constraints.sh` |
+| .mcp.json | `.mcp.json.template` | `mcp-writing.md` | — | `check-constraints.sh` |
+| settings.json | `settings.json.template` | `settings-writing.md` | `settings-reviewer.md` | `check-constraints.sh` |
+| ALL | — | — | — | `check-limits.sh` + `check-placement.sh` |

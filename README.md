@@ -10,7 +10,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/vpxuser/claude-code-devkit)](https://github.com/vpxuser/claude-code-devkit/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/vpxuser/claude-code-devkit)](https://github.com/vpxuser/claude-code-devkit/commits/main)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-orange.svg)](https://docs.anthropic.com/en/docs/claude-code)
-[![File Types](https://img.shields.io/badge/File_Types-9-green.svg)](#supported-file-types)
+[![File Types](https://img.shields.io/badge/File_Types-12-green.svg)](#supported-file-types)
 
 *Templates · Rules · Output Styles · Reviewers · Scaffolding*
 
@@ -38,25 +38,28 @@ Claude Code 是强大的 AI 编程助手，但默认行为缺乏一致性：
 L1: 思考模式 → design-thinking.md    （设计决策过程）
 L2: 行为约束 → *.md rules            （怎么写、怎么设计）
 L3: 输出模板 → templates/            （结构约束）
-L4: 模板校验 → reviewer agents       （质量验证）
+L4: 模板校验 → reviewer agents       （AI 质量验证）
+L5: 脚本校验 → scripts/*.sh          （确定性约束检查）
 ```
 
 ## Supported File Types
 
-| 文件类型 | Template | Rule | Output Style | Reviewer | Creator | Scripts |
-|----------|:--------:|:----:|:------------:|:--------:|:-------:|:-------:|
-| SKILL.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AGENT.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| COMMAND.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| WORKFLOW.js | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| HOOK.sh | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| plugin.json | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| REFERENCE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| OUTPUT-STYLE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CLAUDE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 文件类型 | Template | Rule | Output Style | Reviewer | Creator | L5 Script |
+|----------|:--------:|:----:|:------------:|:--------:|:-------:|:---------:|
+| SKILL.md | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| AGENT.md | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| COMMAND.md | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| WORKFLOW.js | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| HOOK.sh | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| plugin.json | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| REFERENCE.md | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| OUTPUT-STYLE.md | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| CLAUDE.md | ✅ | ✅ | ✅ | ✅ | ✅ | check-constraints |
+| Rule.md | ✅ | ✅ | — | ✅ | ✅ | check-constraints |
+| .mcp.json | ✅ | ✅ | — | — | — | check-constraints |
+| settings.json | ✅ | ✅ | — | ✅ | — | check-constraints |
 | package.json | ✅ | — | — | — | — | — |
 | .markdownlint.json | ✅ | — | — | — | — | — |
-| .mcp.json | ✅ | ✅ | — | — | — | ✅ |
 
 ## Quick Start
 
@@ -143,6 +146,7 @@ npm run precommit:install
 /new-reference my-ref        # 创建新 Reference
 /new-output-style my-style   # 创建新 Output Style
 /new-claude-md my-project    # 创建新 CLAUDE.md
+/new-rule my-rule            # 创建新 Rule
 
 # Review — 质量校验
 /review-skill path/to/SKILL.md
@@ -154,13 +158,15 @@ npm run precommit:install
 /review-reference path/to/REFERENCE.md
 /review-output-style path/to/OUTPUT-STYLE.md
 /review-claude-md path/to/CLAUDE.md
+/review-rule path/to/rule.md
 
 # Quality — 质量检查
 npm run lint:md              # Markdown 格式检查
 npm run lint:md:fix          # 自动修复 Markdown 格式
 npm run check:limits         # 行数限制检查
 npm run check:placement      # 目录结构检查
-npm run check:all            # 全部检查（格式 + 行数 + 目录）
+npm run check:constraints    # L2 确定性约束检查（frontmatter、section 等）
+npm run check:all            # 全部检查（格式 + 行数 + 目录 + 约束）
 npm run test                 # 同 check:all
 ```
 
@@ -169,7 +175,7 @@ npm run test                 # 同 check:all
 ```
 claude-code-devkit/
 ├── CLAUDE.md                              # 开发规范入口
-├── templates/                             # 文件模板
+├── templates/                             # 文件模板（L3）
 │   ├── SKILL.md.template
 │   ├── AGENT.md.template
 │   ├── COMMAND.md.template
@@ -179,16 +185,20 @@ claude-code-devkit/
 │   ├── WORKFLOW.js.template
 │   ├── HOOK.sh.template
 │   ├── plugin.template.json
+│   ├── settings.json.template
 │   ├── package.json.template
 │   ├── .markdownlint.json.template
 │   ├── .mcp.json.template
+│   ├── RULE.md.template
 │   └── README.md.template
 ├── scripts/                               # 质量检查脚本
-│   ├── check-limits.sh                    # 行数限制 + 目录结构检查
+│   ├── check-limits.sh                    # 行数限制检查
 │   ├── check-placement.sh                 # 目录结构检查（PostToolUse hook）
+│   ├── check-constraints.sh               # L2 确定性约束检查（frontmatter、section 等）
+│   ├── install.sh                         # 一键安装脚本
 │   └── pre-commit.sh                      # Git pre-commit hook
 ├── .claude/
-│   ├── rules/                             # 行为约束（14 条规则）
+│   ├── rules/                             # 行为约束（L2）
 │   │   ├── design-thinking.md             # 设计思维（7 条原则）
 │   │   ├── progressive-disclosure.md      # 渐进式披露
 │   │   ├── yaml-frontmatter.md            # YAML 规范
@@ -202,11 +212,13 @@ claude-code-devkit/
 │   │   ├── workflow-writing.md            # Workflow 编写
 │   │   ├── hook-writing.md                # Hook 编写
 │   │   ├── plugin-writing.md              # Plugin 编写
-│   │   └── mcp-writing.md                 # MCP 配置编写
+│   │   ├── mcp-writing.md                 # MCP 配置编写
+│   │   ├── settings-writing.md            # Settings 编写
+│   │   └── rule-writing.md                # Rule 编写
 │   ├── output-styles/                     # 输出风格（6 个）
-│   ├── agents/                            # Reviewer Agents（9 个）
-│   ├── skills/                            # Creator Skills（10 个）
-│   └── commands/                          # Review Commands（10 个）
+│   ├── agents/                            # Reviewer Agents（10 个）
+│   ├── skills/                            # Creator Skills（11 个）
+│   └── commands/                          # Review Commands（11 个）
 ├── references/
 │   └── philosophy.md                      # 设计哲学
 ├── .github/

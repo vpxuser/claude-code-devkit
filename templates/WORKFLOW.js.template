@@ -1,55 +1,37 @@
-/**
- * Workflow: [NAME]
- *
- * Purpose: [一句话描述工作流用途]
- * Trigger: [触发条件]
- *
- * 注意: args 是全局变量，由运行时注入
- */
-
-// args 是全局变量，直接使用
-const { target } = args;
-
-// Phase 1: [阶段名称]
-// [阶段描述]
-const phase1Result = await phase1(target);
-
-// Phase 2: [阶段名称]
-// [阶段描述]
-const phase2Result = await phase2(phase1Result);
-
-// Phase 3: [阶段名称]
-// [阶段描述]
-const finalResult = await phase3(phase2Result);
-
-return finalResult;
-
-/**
- * Phase 1: [阶段名称]
- * @param {string} target - 目标
- * @returns {Object} 阶段结果
- */
-async function phase1(target) {
-  // TODO: 实现阶段 1
-  return {};
+export const meta = {
+  name: '[workflow-name]',
+  description: '[One-line description shown in permission dialog]',
+  phases: [
+    { title: '[Phase 1]', detail: '[What this phase does]' },
+    { title: '[Phase 2]', detail: '[What this phase does]' },
+  ],
 }
 
-/**
- * Phase 2: [阶段名称]
- * @param {Object} input - 上一阶段结果
- * @returns {Object} 阶段结果
- */
-async function phase2(input) {
-  // TODO: 实现阶段 2
-  return {};
-}
+// Script body starts here
+// Available globals: args, budget
+// Available functions: agent(), parallel(), pipeline(), phase(), log()
 
-/**
- * Phase 3: [阶段名称]
- * @param {Object} input - 上一阶段结果
- * @returns {Object} 最终结果
- */
-async function phase3(input) {
-  // TODO: 实现阶段 3
-  return {};
-}
+phase('[Phase 1]')
+
+const results = await pipeline(
+  args.items,
+  async (item) => {
+    return await agent(`[Prompt for ${item}]`, {
+      label: `[label]`,
+      phase: '[Phase 1]',
+    })
+  }
+)
+
+phase('[Phase 2]')
+
+const verified = await parallel(
+  results.filter(Boolean).map(r => () =>
+    agent(`Verify: ${r}`, {
+      label: `verify:${r}`,
+      phase: '[Phase 2]',
+    })
+  )
+)
+
+return { confirmed: verified.filter(Boolean) }

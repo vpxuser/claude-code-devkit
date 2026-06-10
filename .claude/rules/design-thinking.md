@@ -90,6 +90,14 @@ User: "I need [capability]"
    - Read-only analysis of existing files? → Agent (.claude/agents/<name>.md)
    - Multiple agents orchestrated dynamically? → Workflow (.claude/workflows/<name>.js)
    - Context-aware interactive workflow? → Skill (.claude/skills/<name>/SKILL.md)
+
+7. Is it a project configuration or environment setup?
+   YES → Settings (.claude/settings.json) or MCP (.mcp.json)
+   NO  → Go to 8
+
+8. Is it a validation or quality check script?
+   YES → Script (scripts/*.sh)
+   NO  → Re-evaluate the requirement
 ```
 
 ## 复杂度预算
@@ -102,6 +110,7 @@ User: "I need [capability]"
 | Workflow 步骤数 | 7 | 12 | 拆分为多个技能组合 |
 | Agent tools 数量 | 3 | 6 | 缩小职责范围 |
 | CLAUDE.md 行数 | 80 | 150 | 拆分到 `.claude/rules/` |
+| Rule 行数 | 100 | 150 | 拆分为多个规则文件 |
 | Frontmatter 字段数 | 5 | 10 | 只保留必选+关键可选 |
 
 ## 设计自检

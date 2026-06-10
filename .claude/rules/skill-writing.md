@@ -38,6 +38,27 @@ description: "SKILL.md 编写规范 — 对 skills/ 和 templates/ 下的 SKILL.
 - 指令按优先级排列：最重要的步骤排在最前
 - 每条 NEVER 指令后必须跟随替代方案（`— 改为 [方案]`）
 
+## Frontmatter 字段规范
+
+| 字段 | 必选 | 说明 |
+| --- | --- | --- |
+| `name` | ❌ | 显示名称，默认为目录名 |
+| `description` | ✅ | 描述技能用途和触发条件 |
+| `when_to_use` | ❌ | 额外触发上下文，追加到 description |
+| `argument-hint` | ❌ | 自动补全时显示的参数提示 |
+| `arguments` | ❌ | 命名位置参数，支持 `$name` 替换 |
+| `disable-model-invocation` | ❌ | 设为 `true` 防止 Claude 自动触发 |
+| `user-invocable` | ❌ | 设为 `false` 从 `/` 菜单隐藏 |
+| `allowed-tools` | ❌ | 技能激活时允许的工具 |
+| `disallowed-tools` | ❌ | 技能激活时禁用的工具 |
+| `model` | ❌ | 技能激活时使用的模型 |
+| `effort` | ❌ | 技能激活时的努力级别 |
+| `context` | ❌ | 设为 `fork` 在子代理中运行 |
+| `agent` | ❌ | 子代理类型（当 `context: fork` 时） |
+| `hooks` | ❌ | 技能生命周期钩子 |
+| `paths` | ❌ | 限制技能激活的文件路径模式 |
+| `shell` | ❌ | 用于 `!` 命令的 shell（bash/powershell） |
+
 ## 触发条件规范
 
 - Description 字段至少包含 3 个触发短语（mention/working with/asked to）

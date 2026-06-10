@@ -4,9 +4,24 @@ description: >
   一句话描述这个技能做什么。然后列出触发短语：
   "Use when user mentions X, Y, Z" 或 "Activate when working with [file type]."
   侵略性描述 — 宁可过度触发，不要漏触发。
-allowed-tools: Read, Grep, Bash(git:*)
+when_to_use: >
+  额外触发上下文，如触发短语或示例请求。
+  追加到 description，在技能列表中计入 1,536 字符上限。
+argument-hint: "[arg1] [arg2]"
+arguments:
+  - arg1
+  - arg2
 disable-model-invocation: false
+user-invocable: true
+allowed-tools: Read, Grep, Bash(git:*)
+disallowed-tools: AskUserQuestion
+model: inherit
+effort: medium
 context: default
+agent: general-purpose
+hooks: {}
+paths: []
+shell: bash
 ---
 
 # Skill: [技能显示名称]

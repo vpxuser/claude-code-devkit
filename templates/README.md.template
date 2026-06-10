@@ -38,7 +38,9 @@ npm run lint:md
 | --- | --- |
 | `/new-skill <name>` | Create a skill from template |
 | `/new-agent <name>` | Create an agent from template |
-| `/review-skill <path>` | Review a SKILL.md or agent.md |
+| `/new-rule <name>` | Create a rule file from template |
+| `/review-skill <path>` | Review a SKILL.md file |
+| `/review-rule <path>` | Review a rule file |
 
 ## Templates
 
@@ -50,6 +52,7 @@ npm run lint:md
 | `REFERENCE.md.template` | Reference documentation |
 | `COMMAND.md.template` | Slash command definition |
 | `OUTPUT-STYLE.md.template` | Output style definition |
+| `RULE.md.template` | Rule definition |
 
 ## Rules
 
@@ -63,6 +66,7 @@ All `.md` output is governed by path-scoped rules in `.claude/rules/`:
 | `yaml-frontmatter.md` | All files with frontmatter |
 | `reference-writing.md` | `references/**/*.md` |
 | `claude-md-writing.md` | `**/CLAUDE.md`, `CLAUDE.local.md` |
+| `rule-writing.md` | `.claude/rules/*.md` |
 
 ## Quality
 

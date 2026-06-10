@@ -18,7 +18,7 @@
 ### Rules（`.claude/rules/`）
 
 - 文件名：kebab-case，如 `skill-writing.md`
-- 无 YAML frontmatter
+- YAML frontmatter 必选：`description`；路径级规则加 `paths`
 - 以 `# H1` 标题开头
 - 约束用 `ALWAYS` / `NEVER` 前缀
 - `NEVER` 必须配替代方案
@@ -28,7 +28,7 @@
 - 目录名：kebab-case，如 `new-skill/`
 - 入口文件：`SKILL.md`
 - YAML frontmatter 必选：`name`、`description`
-- ≤ 200 行，长内容拆到 `references/`
+- ≤ 500 行，长内容拆到 `references/`
 
 ### Templates（`templates/`）
 

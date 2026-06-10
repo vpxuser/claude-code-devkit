@@ -8,44 +8,42 @@
 # Input: JSON on stdin
 # Output: JSON on stdout (optional)
 # Exit codes:
-#   0 - success
+#   0 - success (no decision)
 #   1 - error
 #   2 - decision (block/allow)
 
 set -euo pipefail
 
-# 读取输入
 INPUT=$(cat)
 
-# 解析输入
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
 TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // empty')
 
-# 日志函数
-log() {
-  echo "[HOOK] $1" >&2
-}
+log() { echo "[HOOK] $1" >&2; }
 
-# 决策函数
 decision() {
   local decision="$1"
   local reason="$2"
-  echo "{\"decision\": \"$decision\", \"reason\": \"$reason\"}"
+  jq -n --arg d "$decision" --arg r "$reason" '{
+    hookSpecificOutput: {
+      hookEventName: "[EVENT]",
+      permissionDecision: $d,
+      permissionDecisionReason: $r
+    }
+  }'
   exit 2
 }
 
-# 主逻辑
-log "Hook 触发: $TOOL_NAME"
+log "Hook triggered: $TOOL_NAME"
 
-# TODO: 实现钩子逻辑
+# TODO: Implement hook logic
 
-# 示例: 阻止危险命令
+# Example: block dangerous commands
 if [[ "$TOOL_NAME" == "Bash" ]]; then
   COMMAND=$(echo "$TOOL_INPUT" | jq -r '.command // empty')
   if [[ "$COMMAND" == *"rm -rf"* ]]; then
-    decision "block" "危险命令被阻止: rm -rf"
+    decision "deny" "Dangerous command blocked"
   fi
 fi
 
-# 默认允许
 exit 0

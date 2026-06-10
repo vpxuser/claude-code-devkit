@@ -35,6 +35,8 @@ description: "Agent 定义文件编写规范 — 对 .claude/agents/ 下所有 a
 | `background` | `true` / `false` | `false` | 长时间运行的后台任务 |
 | `skills` | 逗号分隔 | 全部 | 限制 agent 可用的技能 |
 | `effort` | `low` / `medium` / `high` | 继承 | 控制审查深度 |
+| `hooks` | 对象 | 无 | agent 生命周期钩子 |
+| `paths` | 数组 | 无 | 限制 agent 激活的文件路径模式 |
 
 ## 工具选择指南
 

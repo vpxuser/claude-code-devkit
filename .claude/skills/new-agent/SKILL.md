@@ -58,7 +58,7 @@ version: 1.0.0
 1. 填写 agent 的 Expertise 和 Review Protocol
 2. 根据任务类型选择 tools 和 model（参考 `.claude/rules/agent-writing.md`）
 3. 运行 `npx markdownlint .claude/agents/$ARGUMENTS.md` 验证格式
-4. 用 `/review-skill .claude/agents/$ARGUMENTS.md` 做内容审查
+4. 用 `/review-agent .claude/agents/$ARGUMENTS.md` 做内容审查
 ```
 
 ## Examples

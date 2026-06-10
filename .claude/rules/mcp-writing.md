@@ -59,43 +59,11 @@ description: "MCP 配置文件编写规范 — 对 .mcp.json 文件生效"
 
 ### 配置模式
 
-#### 模式一：npx 直接运行
-
 ```json
-{
-  "command": "npx",
-  "args": ["@scope/package@latest"]
-}
-```
-
-#### 模式二：本地可执行文件
-
-```json
-{
-  "command": "my-mcp-server"
-}
-```
-
-#### 模式三：带环境变量
-
-```json
-{
-  "command": "npx",
-  "args": ["@scope/package"],
-  "env": {
-    "API_KEY": "${MCP_API_KEY}"
-  }
-}
-```
-
-#### 模式四：带工作目录
-
-```json
-{
-  "command": "python",
-  "args": ["server.py"],
-  "cwd": "./mcp-servers/my-server"
-}
+{ "command": "npx", "args": ["@scope/package@latest"] }
+{ "command": "local-server" }
+{ "command": "npx", "args": ["@scope/package"], "env": {"KEY": "${ENV_VAR}"} }
+{ "command": "python", "args": ["server.py"], "cwd": "./mcp-servers/my-server" }
 ```
 
 ## 格式规范
@@ -148,16 +116,10 @@ description: "MCP 配置文件编写规范 — 对 .mcp.json 文件生效"
 ```json
 {
   "$schema": "https://code.claude.com/schemas/mcp.json",
-  "_comment": "pentest-skills MCP 服务器配置。Playwright 用于 API 发现，ast-grep 用于 JS AST 分析",
+  "_comment": "项目 MCP 配置。ast-grep 用于 AST 分析",
   "mcpServers": {
-    "ast-grep": {
-      "command": "npx",
-      "args": ["@notprolands/ast-grep-mcp"]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
+    "ast-grep": { "command": "npx", "args": ["@scope/ast-grep-mcp"] },
+    "playwright": { "command": "npx", "args": ["@playwright/mcp@latest"] }
   }
 }
 ```
@@ -167,29 +129,15 @@ description: "MCP 配置文件编写规范 — 对 .mcp.json 文件生效"
 ```json
 {
   "mcpServers": {
-    "Playwright": {                      <!-- 为什么错: 大写命名 -->
-      "command": "npx",
-      "args": ["@playwright/mcp"]        <!-- 为什么错: 缺少版本号 -->
-    },
-    "server1": {                         <!-- 为什么错: 无意义名称 -->
-      "command": "python server.py",     <!-- 为什么错: command 和 args 混淆 -->
-      "API_KEY": "sk-xxx"                <!-- 为什么错: 硬编码密钥 -->
-    }
+    "Playwright": { "command": "npx", "args": ["@playwright/mcp"] },
+    "server1": { "command": "python server.py", "API_KEY": "sk-xxx" }
   }
 }
 ```
 
-## 质量检查
-
-- [ ] `$schema` 字段存在且指向正确地址？
-- [ ] `_comment` 说明了项目用途？
-- [ ] 服务器名称使用 kebab-case？
-- [ ] 没有硬编码的密钥或令牌？
-- [ ] JSON 语法正确（无尾随逗号、无注释）？
-- [ ] 服务器按字母顺序排列？
+<!-- 为什么错: 大写命名、缺少版本号、无意义名称、command/args 混淆、硬编码密钥 -->
 
 ## 边界案例
 
 - 当服务器需要特殊权限时：在 `_comment` 中说明，不要硬编码
-- 当服务器配置复杂时：拆分为多个简单配置，不要堆砌
 - 当环境变量缺失时：服务器启动会失败，这是预期行为

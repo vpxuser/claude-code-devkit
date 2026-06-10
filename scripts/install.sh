@@ -53,6 +53,7 @@ DEVKIT_RULES=(
   "hook-writing.md"
   "plugin-writing.md"
   "mcp-writing.md"
+  "rule-writing.md"
 )
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────

@@ -21,6 +21,7 @@ description: "输出风格编写规范 — 对 .claude/output-styles/ 下所有�
 | `name` | ✅ | kebab-case，输出风格标识 |
 | `description` | ✅ | 描述何时使用此风格 |
 | `keep-coding-instructions` | ✅ | `true` 保留内置编码指令，`false` 替换 |
+| `force-for-plugin` | ❌ | 插件专用：插件启用时自动应用此风格 |
 
 ## 内容规范
 

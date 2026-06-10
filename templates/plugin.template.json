@@ -1,5 +1,8 @@
 {
   "name": "[plugin-name]",
   "description": "[一句话描述插件用途]",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "author": {
+    "name": "[作者名称]"
+  }
 }

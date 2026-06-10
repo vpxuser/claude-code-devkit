@@ -51,7 +51,9 @@ description: "Plugin 编写规范 — 对 .claude-plugin/ 下所有插件配置�
 ```json
 {
   "version": "1.0.0",
-  "author": "[作者名]"
+  "author": {
+    "name": "[作者名]"
+  }
 }
 ```
 
@@ -62,7 +64,7 @@ description: "Plugin 编写规范 — 对 .claude-plugin/ 下所有插件配置�
 | name | string | ✅ | 插件名称（kebab-case） |
 | description | string | ✅ | 一句话描述 |
 | version | string | ❌ | 版本号（semver），可选 |
-| author | string | ❌ | 作者名 |
+| author | object | ❌ | 作者信息，包含 name 字段 |
 
 ### 目录结构
 
@@ -114,7 +116,10 @@ my-plugin/
 {
   "name": "pentest-toolkit",
   "description": "渗透测试工具集",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "author": {
+    "name": "Security Team"
+  }
 }
 ```
 

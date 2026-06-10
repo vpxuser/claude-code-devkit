@@ -10,13 +10,13 @@ Review the CLAUDE.md file at `$ARGUMENTS` against the project's quality standard
 ## Review Dimensions
 
 1. **Structure Completeness** — Are all required sections present:
-   Project info, Design thinking, Carrier selection, Complexity budget, Anti-patterns?
+   # PROJECT, Stack+Purpose, ALWAYS, NEVER, Format spec, Output checklist?
 
 2. **Rule Quality** — Are rules clear and actionable? Do they start with ALWAYS or NEVER?
    Does every NEVER have an alternative?
 
 3. **Reference Quality** — Are there references to other files? Are the references valid?
-   Is the CLAUDE.md under 200 lines?
+   Is the CLAUDE.md under 150 lines?
 
 4. **Consistency** — Is the CLAUDE.md consistent with other rules files?
    Are there any contradictions?

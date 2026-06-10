@@ -32,7 +32,7 @@ Purpose: [one-line project mission].
 每产出或修改文件，静默自检：
 
 1. 运行 `npx markdownlint <file>` 无违规？
-2. 行数在限制内？（SKILL.md ≤ 500, CLAUDE.md ≤ 150, Agent ≤ 500, Command ≤ 200, Output Style ≤ 200, Rule ≤ 200）
+2. 行数在限制内？（SKILL.md ≤ 500, CLAUDE.md ≤ 150, Agent ≤ 500, Command ≤ 200, Output Style ≤ 200, Rule ≤ 150）
 3. YAML frontmatter 格式正确？
 4. 代码块有语言标签？
 5. Section 标题前后有空行？

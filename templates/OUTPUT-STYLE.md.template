@@ -2,6 +2,7 @@
 name: style-name
 description: One-line description of this output style and when to apply it.
 keep-coding-instructions: true
+force-for-plugin: false
 ---
 
 # [Output Style Name]

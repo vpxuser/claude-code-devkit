@@ -5,6 +5,10 @@ model: sonnet
 tools: Read, Grep, Glob
 maxTurns: 10
 memory: project
+isolation: none
+skills: []
+hooks: {}
+paths: []
 ---
 
 # Agent: [Agent Display Name]
