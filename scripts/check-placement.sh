@@ -44,19 +44,66 @@ check_file() {
       ;;
   esac
 
-  # Check .js files ONLY in .claude/ context (not evidence/, data/, etc.)
+  # Check .js files in .claude/ context — allowed in workflows/ and skills/<name>/scripts/
   if echo "$BASENAME" | grep -qE '\.js$' && echo "$FILE" | grep -qE '^\.claude/'; then
-    if ! echo "$FILE" | grep -qE '^\.claude/workflows/'; then
-      echo "❌ $FILE: .js in .claude/ must be in .claude/workflows/"
+    if ! echo "$FILE" | grep -qE '^\.claude/(workflows/|skills/[^/]+/scripts/)'; then
+      echo "❌ $FILE: .js in .claude/ must be in .claude/workflows/ or .claude/skills/<name>/scripts/"
       VIOLATED=1
     fi
   fi
 
-  # Check .sh files ONLY in .claude/ context (not scripts/, etc.)
+  # Check .sh files in .claude/ context — allowed in hooks/ and skills/<name>/scripts/
   if echo "$BASENAME" | grep -qE '\.sh$' && echo "$FILE" | grep -qE '^\.claude/'; then
-    if ! echo "$FILE" | grep -qE '^\.claude/hooks/'; then
-      echo "❌ $FILE: .sh in .claude/ must be in .claude/hooks/"
+    if ! echo "$FILE" | grep -qE '^\.claude/(hooks/|skills/[^/]+/scripts/)'; then
+      echo "❌ $FILE: .sh in .claude/ must be in .claude/hooks/ or .claude/skills/<name>/scripts/"
       VIOLATED=1
+    fi
+  fi
+
+  # ── Skill subdirectory constraints ──
+  # Files inside .claude/skills/<name>/ must be in the correct subdirectory.
+  #
+  # Allowed structure:
+  #   .claude/skills/<name>/SKILL.md        (root — only SKILL.md)
+  #   .claude/skills/<name>/scripts/*.sh    (scripts — .sh/.py/.js only)
+  #   .claude/skills/<name>/references/*.md (references — .md only)
+  #   .claude/skills/<name>/templates/*     (templates — any file)
+  local SKILL_ROOT="\.claude/skills/[^/]+"
+  if echo "$FILE" | grep -qE "^$SKILL_ROOT/"; then
+    local REL_IN_SKILL
+    REL_IN_SKILL=$(echo "$FILE" | sed -E "s|^\.claude/skills/[^/]+/||")
+
+    # Root level: only SKILL.md allowed
+    if ! echo "$REL_IN_SKILL" | grep -qE '/'; then
+      if [ "$REL_IN_SKILL" != "SKILL.md" ]; then
+        echo "❌ $FILE: only SKILL.md allowed at skill root (use scripts/, references/, or templates/)"
+        VIOLATED=1
+      fi
+    else
+      # Subdirectory: enforce file types
+      local SUBDIR
+      SUBDIR=$(echo "$REL_IN_SKILL" | cut -d'/' -f1)
+      case "$SUBDIR" in
+        scripts)
+          if ! echo "$BASENAME" | grep -qE '\.(sh|py|js)$'; then
+            echo "❌ $FILE: scripts/ only allows .sh/.py/.js files"
+            VIOLATED=1
+          fi
+          ;;
+        references)
+          if ! echo "$BASENAME" | grep -qE '\.md$'; then
+            echo "❌ $FILE: references/ only allows .md files"
+            VIOLATED=1
+          fi
+          ;;
+        templates)
+          # templates/ allows any file type
+          ;;
+        *)
+          echo "❌ $FILE: unknown skill subdirectory '$SUBDIR' (allowed: scripts/, references/, templates/)"
+          VIOLATED=1
+          ;;
+      esac
     fi
   fi
 
