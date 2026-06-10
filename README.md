@@ -104,6 +104,7 @@ cp .claude/devkit/.claude/rules/yaml-frontmatter.md .claude/rules/
 # 3. 复制质量检查脚本
 mkdir -p scripts
 cp .claude/devkit/scripts/check-limits.sh scripts/
+cp .claude/devkit/scripts/check-placement.sh scripts/
 cp .claude/devkit/scripts/pre-commit.sh scripts/
 
 # 4. 复制配置文件
@@ -171,7 +172,8 @@ done
 npm run lint:md              # Markdown 格式检查
 npm run lint:md:fix          # 自动修复 Markdown 格式
 npm run check:limits         # 行数限制检查
-npm run check:all            # 全部检查（格式 + 行数）
+npm run check:placement      # 目录结构检查
+npm run check:all            # 全部检查（格式 + 行数 + 目录）
 npm run test                 # 同 check:all
 ```
 
@@ -195,7 +197,8 @@ claude-code-devkit/
 │   ├── .mcp.json.template
 │   └── README.md.template
 ├── scripts/                               # 质量检查脚本
-│   ├── check-limits.sh                    # 行数限制检查
+│   ├── check-limits.sh                    # 行数限制 + 目录结构检查
+│   ├── check-placement.sh                 # 目录结构检查（PostToolUse hook）
 │   └── pre-commit.sh                      # Git pre-commit hook
 ├── .claude/
 │   ├── rules/                             # 行为约束（14 条规则）

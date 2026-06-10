@@ -6,7 +6,8 @@
     "lint:md": "markdownlint --config .markdownlint.json \"skills/**/*.md\" \"templates/**/*.md\" \"**/*.md\" --ignore node_modules",
     "lint:md:fix": "markdownlint --config .markdownlint.json --fix \"skills/**/*.md\" \"templates/**/*.md\" \"**/*.md\" --ignore node_modules",
     "check:limits": "bash scripts/check-limits.sh",
-    "check:all": "npm run lint:md && npm run check:limits",
+    "check:placement": "bash scripts/check-placement.sh",
+    "check:all": "npm run lint:md && npm run check:limits && npm run check:placement",
     "test": "npm run check:all",
     "precommit:install": "cp scripts/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo 'Pre-commit hook installed'"
   },

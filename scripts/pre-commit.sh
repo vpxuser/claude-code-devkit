@@ -18,7 +18,7 @@ echo "$STAGED_MD" | while read -r f; do
 done
 
 echo ""
-echo "=== Pre-commit: Line Limits ==="
+echo "=== Pre-commit: Line Limits & Placement ==="
 bash scripts/check-limits.sh
 
 echo ""

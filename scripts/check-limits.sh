@@ -107,10 +107,15 @@ for f in $(find . -maxdepth 1 -name '.mcp.json' -o -name 'mcp.json' 2>/dev/null)
 done
 
 echo ""
-if [ "$VIOLATIONS" -gt 0 ]; then
-  echo "❌ $VIOLATIONS violation(s) found. Split oversized files."
+bash scripts/check-placement.sh
+DIR_RESULT=$?
+
+echo ""
+TOTAL=$((VIOLATIONS + DIR_RESULT))
+if [ "$TOTAL" -gt 0 ]; then
+  echo "❌ Violations found. Fix oversized files or directory placement."
   exit 1
 else
-  echo "✅ All files within line limits"
+  echo "✅ All files within limits and correct locations"
   exit 0
 fi
