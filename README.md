@@ -234,12 +234,6 @@ claude-code-devkit/
 | P6 | Compose, Don't Expand | 组合优于堆砌 |
 | P7 | Prefer Existing Tools | 优先包装成熟工具，不重写核心功能 |
 
-## Who's Using
-
-- [pentest-skills](https://github.com/vpxuser/pentest-skills) — 渗透测试技能套件
-
-*使用了 devkit？欢迎提交 PR 添加你的项目！*
-
 ## Contributing
 
 欢迎贡献！请阅读 [CONTRIBUTING.md](.github/CONTRIBUTING.md)。
