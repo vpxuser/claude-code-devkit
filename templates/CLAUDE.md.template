@@ -36,6 +36,7 @@ Purpose: [one-line project mission].
 3. YAML frontmatter 格式正确？
 4. 代码块有语言标签？
 5. Section 标题前后有空行？
+6. `.mcp.json` 是否符合 `mcp-writing.md` 规范？
 
 ## 关键参考文件
 

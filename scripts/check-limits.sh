@@ -86,6 +86,26 @@ for f in $(find .claude/workflows -name '*.js' 2>/dev/null); do
   fi
 done
 
+# Check MCP config files (JSON syntax + ≤ 100 lines)
+for f in $(find . -maxdepth 1 -name '.mcp.json' -o -name 'mcp.json' 2>/dev/null); do
+  [ -f "$f" ] || continue
+  # Check JSON syntax
+  if ! python -m json.tool "$f" > /dev/null 2>&1; then
+    echo "❌ $f: invalid JSON syntax"
+    VIOLATIONS=$((VIOLATIONS + 1))
+  else
+    echo "✅ $f: valid JSON"
+  fi
+  # Check line count
+  LINES=$(wc -l < "$f")
+  if [ "$LINES" -gt 100 ]; then
+    echo "❌ $f: $LINES lines (limit: 100)"
+    VIOLATIONS=$((VIOLATIONS + 1))
+  else
+    echo "✅ $f: $LINES lines"
+  fi
+done
+
 echo ""
 if [ "$VIOLATIONS" -gt 0 ]; then
   echo "❌ $VIOLATIONS violation(s) found. Split oversized files."

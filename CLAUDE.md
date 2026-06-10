@@ -60,6 +60,7 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
   - Reference.md → `templates/REFERENCE.md.template`
   - Command.md → `templates/COMMAND.md.template`
   - Output Style.md → `templates/OUTPUT-STYLE.md.template`
+  - .mcp.json → `templates/.mcp.json.template`
   - README.md → `templates/README.md.template`
 - ALWAYS 将文件放在正确的目录：
   - Skills → `skills/` 或 `.claude/skills/`
@@ -108,6 +109,7 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
 6. 代码块都有语言标签？
 7. 行宽是否 > 120? 若是，折行
 8. 总行数是否超限？Skill/Agent ≤ 500，CLAUDE.md ≤ 150
+9. `.mcp.json` 是否符合 `mcp-writing.md` 规范？
 
 ## 模板→规则 覆盖矩阵
 
@@ -122,5 +124,6 @@ Purpose: Claude Code 开发规范 — 模板、规则、输出风格、设计哲
 | Workflow.js | `templates/WORKFLOW.js.template` | `workflow-writing.md` |
 | Hook.sh | `templates/HOOK.sh.template` | `hook-writing.md` |
 | plugin.json | `templates/plugin.template.json` | `plugin-writing.md` |
+| .mcp.json | `templates/.mcp.json.template` | `mcp-writing.md` |
 | README.md | `templates/README.md.template` | `markdown-output.md` |
 | ALL .md | — | `markdown-output.md` + `yaml-frontmatter.md` |

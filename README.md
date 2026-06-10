@@ -56,6 +56,7 @@ L4: 模板校验 → reviewer agents       （质量验证）
 | CLAUDE.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | package.json | ✅ | — | — | — | — | — |
 | .markdownlint.json | ✅ | — | — | — | — | — |
+| .mcp.json | ✅ | ✅ | — | — | — | ✅ |
 
 ## Quick Start
 
@@ -71,6 +72,7 @@ npm install
 # 2. 复制配置文件
 cp templates/package.json.template package.json
 cp templates/.markdownlint.json.template .markdownlint.json
+cp templates/.mcp.json.template .mcp.json
 
 # 3. 安装 pre-commit hook
 npm run precommit:install
@@ -107,6 +109,7 @@ cp .claude/devkit/scripts/pre-commit.sh scripts/
 # 4. 复制配置文件
 cp .claude/devkit/templates/package.json.template package.json
 cp .claude/devkit/templates/.markdownlint.json.template .markdownlint.json
+cp .claude/devkit/templates/.mcp.json.template .mcp.json
 
 # 5. 安装依赖
 npm install
@@ -189,12 +192,13 @@ claude-code-devkit/
 │   ├── plugin.template.json
 │   ├── package.json.template
 │   ├── .markdownlint.json.template
+│   ├── .mcp.json.template
 │   └── README.md.template
 ├── scripts/                               # 质量检查脚本
 │   ├── check-limits.sh                    # 行数限制检查
 │   └── pre-commit.sh                      # Git pre-commit hook
 ├── .claude/
-│   ├── rules/                             # 行为约束（13 条规则）
+│   ├── rules/                             # 行为约束（14 条规则）
 │   │   ├── design-thinking.md             # 设计思维（7 条原则）
 │   │   ├── progressive-disclosure.md      # 渐进式披露
 │   │   ├── yaml-frontmatter.md            # YAML 规范
@@ -207,7 +211,8 @@ claude-code-devkit/
 │   │   ├── claude-md-writing.md           # CLAUDE.md 编写
 │   │   ├── workflow-writing.md            # Workflow 编写
 │   │   ├── hook-writing.md                # Hook 编写
-│   │   └── plugin-writing.md              # Plugin 编写
+│   │   ├── plugin-writing.md              # Plugin 编写
+│   │   └── mcp-writing.md                 # MCP 配置编写
 │   ├── output-styles/                     # 输出风格（6 个）
 │   ├── agents/                            # Reviewer Agents（9 个）
 │   ├── skills/                            # Creator Skills（10 个）

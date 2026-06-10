@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-09
+
+### Added
+
+- `templates/.mcp.json.template`：MCP 配置文件模板
+- `.claude/rules/mcp-writing.md`：MCP 配置编写规范（14 条规则）
+  - 命名规范：kebab-case，≤30 字符
+  - 结构规范：必选/可选字段定义
+  - 配置模式：npx/本地/环境变量/工作目录
+  - 安全规范：禁止硬编码密钥
+- `scripts/check-limits.sh`：新增 MCP 配置文件检查
+  - JSON 语法检查
+  - 行数限制检查（≤100 行）
+
+### Changed
+
+- README 更新：
+  - Supported File Types 新增 .mcp.json 行
+  - Project Structure 新增 mcp-writing.md 和 .mcp.json.template
+  - 规则数量从 13 更新为 14
+
 ## [1.2.0] - 2026-06-09
 
 ### Added
