@@ -14,7 +14,8 @@ Review against these standards:
 
 1. **Content quality** — `.claude/rules/hook-writing.md`
 2. **Shell best practices** — set -euo pipefail, jq for JSON
-3. **Project rules** — `CLAUDE.md`
+3. **Directory convention** — `.claude/hooks/` location, `${CLAUDE_PROJECT_DIR}` paths
+4. **Project rules** — `CLAUDE.md`
 
 ## Review Protocol
 
@@ -23,11 +24,13 @@ For each HOOK.sh you review:
 1. Read the HOOK.sh file
 2. Read each of the standards files
 3. Check:
+   - File is in `.claude/hooks/` directory (not `scripts/`)
    - Has `set -euo pipefail`
    - Uses jq for JSON parsing
    - Uses stderr for logs (`>&2`)
    - Uses hookSpecificOutput format for decisions
    - Exits with correct codes (0=success, 1=error, 2=decision)
+   - settings.json references `${CLAUDE_PROJECT_DIR}/.claude/hooks/xxx.sh`
 4. Produce a structured review with specific line references
 
 ## Output Format

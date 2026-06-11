@@ -39,7 +39,7 @@ L1: 思考模式 → design-thinking.md    （设计决策过程）
 L2: 行为约束 → *.md rules            （怎么写、怎么设计）
 L3: 输出模板 → templates/            （结构约束）
 L4: 模板校验 → reviewer agents       （AI 质量验证）
-L5: 脚本校验 → scripts/*.sh          （确定性约束检查）
+L5: 脚本校验 → scripts/*.sh + .claude/hooks/*.sh （确定性约束检查）
 ```
 
 ## Supported File Types

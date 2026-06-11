@@ -1,19 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings",
 
-  "_comment": "[项目名称] Claude Code 设置。[简要说明用途]",
-
   "permissions": {
     "allow": [
       "Bash(npm run *)",
+      "Bash(npx markdownlint *)",
       "Bash(git *)",
       "Read",
       "Write",
       "Edit"
-    ],
-    "ask": [
-      "Bash(rm *)",
-      "Bash(curl *)"
     ],
     "deny": [
       "Read(./.env)",
@@ -51,17 +46,5 @@
         ]
       }
     ]
-  },
-
-  "env": {
-    "NODE_ENV": "development"
-  },
-
-  "model": "claude-sonnet-4-6",
-  "outputStyle": "default",
-  "language": "english",
-  "editorMode": "normal",
-  "autoMemoryEnabled": true,
-  "respectGitignore": true,
-  "includeGitInstructions": true
+  }
 }

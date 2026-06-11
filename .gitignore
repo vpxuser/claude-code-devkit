@@ -22,3 +22,9 @@ __pycache__/
 .claude/cache/
 .claude/plans/
 .claude/settings.local.json
+.claude/.devkit-manifest
+
+# Generated configs (deployed by install.sh)
+.markdownlint.json
+.mcp.json
+package.json

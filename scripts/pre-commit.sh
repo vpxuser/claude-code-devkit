@@ -18,8 +18,16 @@ echo "$STAGED_MD" | while read -r f; do
 done
 
 echo ""
-echo "=== Pre-commit: Line Limits & Placement ==="
-bash scripts/check-limits.sh
+echo "=== Pre-commit: Line Limits ==="
+bash .claude/hooks/stop-check-limits.sh
+
+echo ""
+echo "=== Pre-commit: Directory Structure ==="
+bash scripts/check-placement.sh
+
+echo ""
+echo "=== Pre-commit: Constraints ==="
+bash scripts/check-constraints.sh
 
 echo ""
 echo "✅ Pre-commit checks passed"

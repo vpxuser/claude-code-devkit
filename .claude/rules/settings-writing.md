@@ -59,27 +59,46 @@ description: "Settings 编写规范 — 对 .claude/settings.json 和 templates/
 
 ## Hooks 配置规范
 
+### 路径引用
+
+- ALWAYS 使用 `${CLAUDE_PROJECT_DIR}/.claude/hooks/xxx.sh` 引用 hook 脚本
+- NEVER 使用 `$CLAUDE_FILE_PATH` 作为 hook 脚本路径 — 改为 `${CLAUDE_PROJECT_DIR}`
+- NEVER 使用绝对路径或 `~` — 改为 `${CLAUDE_PROJECT_DIR}` 变量
+
 ### 事件类型
 
-| 事件 | 触发时机 |
-|------|----------|
-| `PreToolUse` | 工具调用前 |
-| `PostToolUse` | 工具调用后 |
-| `SessionStart` | 会话开始 |
-| `Stop` | 响应结束 |
+| 事件 | 触发时机 | 适用场景 |
+|------|----------|----------|
+| `PostToolUse` | 工具调用后 | 单文件检查（Write/Edit 后验证） |
+| `Stop` | 响应结束 | 全局检查（turn 结束前扫描） |
+| `PreToolUse` | 工具调用前 | 阻止危险操作 |
+| `SessionStart` | 会话开始 | 环境初始化 |
 
 ### 配置格式
 
 ```json
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npx markdownlint $CLAUDE_FILE_PATH || true"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/post-write-check.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-check.sh",
+            "timeout": 10000
           }
         ]
       }
@@ -87,6 +106,10 @@ description: "Settings 编写规范 — 对 .claude/settings.json 和 templates/
   }
 }
 ```
+
+- ALWAYS 每个 hook 配置包含 `timeout` 字段
+- ALWAYS PostToolUse timeout 设为 5000ms
+- ALWAYS Stop timeout 设为 10000ms
 
 ## 示例
 

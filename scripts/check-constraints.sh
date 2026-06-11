@@ -95,7 +95,8 @@ check_never_alternative() {
   local N_COUNT A_COUNT
   N_COUNT=$(grep -c "^- NEVER" "$FILE" 2>/dev/null || true)
   N_COUNT=${N_COUNT:-0}
-  A_COUNT=$(grep -c "\-\- " "$FILE" 2>/dev/null || true)
+  # Match both "-- " (double dash) and "—" (em dash) as alternative markers
+  A_COUNT=$(grep -cE "(- |—)" "$FILE" 2>/dev/null || true)
   A_COUNT=${A_COUNT:-0}
   if [ "$N_COUNT" -gt 0 ] && [ "$A_COUNT" -lt "$N_COUNT" ]; then
     fail "$FILE: $N_COUNT NEVER rules but only $A_COUNT alternatives"
@@ -232,8 +233,10 @@ check_rule() {
   local H1_LINE
   H1_LINE=$(grep -n "^# [^#]" "$FILE" | head -1 | cut -d: -f1)
   if [ -n "$H1_LINE" ]; then
-    local NEXT=$((H1_LINE + 1))
-    if sed -n "${NEXT}p" "$FILE" | grep -q "^>"; then
+    # Check next non-blank line after H1 is a blockquote
+    local NEXT_LINE
+    NEXT_LINE=$(awk -v start="$H1_LINE" 'NR > start && NF > 0 {print; exit}' "$FILE")
+    if echo "$NEXT_LINE" | grep -q "^>"; then
       pass "$FILE: H1 followed by blockquote"
     else
       fail "$FILE: H1 not followed by blockquote"
@@ -259,6 +262,26 @@ check_json() {
   fi
   if echo "$FILE" | grep -q "settings"; then
     grep -q '"\$schema"' "$FILE" && pass "$FILE: has schema" || fail "$FILE: missing schema"
+    # Check hook paths use ${CLAUDE_PROJECT_DIR}
+    if grep -q '"command"' "$FILE"; then
+      if grep -q 'CLAUDE_PROJECT_DIR' "$FILE"; then
+        pass "$FILE: hooks use \${CLAUDE_PROJECT_DIR} paths"
+      else
+        fail "$FILE: hooks missing \${CLAUDE_PROJECT_DIR} path variable"
+      fi
+      # Check no $CLAUDE_FILE_PATH in hook commands
+      if grep -q 'CLAUDE_FILE_PATH' "$FILE"; then
+        fail "$FILE: uses \$CLAUDE_FILE_PATH in hook — use \${CLAUDE_PROJECT_DIR} instead"
+      fi
+    fi
+    # Check timeout fields
+    if grep -q '"hooks"' "$FILE"; then
+      if grep -q '"timeout"' "$FILE"; then
+        pass "$FILE: hooks have timeout field"
+      else
+        fail "$FILE: hooks missing timeout field"
+      fi
+    fi
   fi
 }
 
@@ -313,6 +336,13 @@ check_workflow() {
 check_hook() {
   local FILE="$1"
   echo ""; echo "=== HOOK.sh: $FILE ==="
+
+  # Must be in .claude/hooks/ directory
+  if echo "$FILE" | grep -qE '^\.claude/hooks/'; then
+    pass "$FILE: in .claude/hooks/ directory"
+  else
+    fail "$FILE: not in .claude/hooks/ — move from scripts/ to .claude/hooks/"
+  fi
 
   # Must have set -euo pipefail
   if grep -q "set -euo pipefail" "$FILE"; then

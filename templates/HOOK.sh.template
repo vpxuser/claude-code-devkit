@@ -2,8 +2,12 @@
 # Hook: [NAME]
 #
 # Purpose: [一句话描述钩子用途]
-# Event: [触发事件: PreToolUse, PostToolUse, Stop, etc.]
-# Matcher: [匹配模式: tool name, file pattern, etc.]
+# Event: [触发事件: PostToolUse, Stop, etc.]
+# Matcher: [匹配模式: Write|Edit, or "" for Stop]
+# Timeout: [5000 for PostToolUse, 10000 for Stop]
+#
+# Location: .claude/hooks/[name].sh
+# Reference: ${CLAUDE_PROJECT_DIR}/.claude/hooks/[name].sh
 #
 # Input: JSON on stdin
 # Output: JSON on stdout (optional)

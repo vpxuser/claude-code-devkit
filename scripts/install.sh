@@ -20,6 +20,7 @@
 #   --scripts       Deploy quality scripts only
 #   --configs       Generate config files from templates
 #   --hooks         Install git pre-commit hook
+#   --claude-hooks  Deploy Claude Code hooks (.claude/hooks/)
 #   --references    Deploy references
 #   --claudemd      Deploy CLAUDE.md template
 #   --dry-run       Show what would be deployed without doing it
@@ -93,6 +94,7 @@ DEPLOY OPTIONS:
   --scripts       Deploy quality check scripts
   --configs       Generate config files (package.json, .markdownlint.json, .mcp.json)
   --hooks         Install git pre-commit hook
+  --claude-hooks  Deploy Claude Code hooks (.claude/hooks/)
   --references    Deploy references
   --claudemd      Deploy CLAUDE.md
   --dry-run       Show what would be copied, do nothing
@@ -235,6 +237,7 @@ do_deploy() {
   local deploy_scripts=false
   local deploy_configs=false
   local deploy_hooks=false
+  local deploy_claude_hooks=false
   local deploy_references=false
   local deploy_claudemd=false
   local dry_run=false
@@ -252,6 +255,7 @@ do_deploy() {
       --scripts)       deploy_scripts=true; component_selected=true ;;
       --configs)       deploy_configs=true; component_selected=true ;;
       --hooks)         deploy_hooks=true; component_selected=true ;;
+      --claude-hooks)  deploy_claude_hooks=true; component_selected=true ;;
       --references)    deploy_references=true; component_selected=true ;;
       --claudemd)      deploy_claudemd=true; component_selected=true ;;
       --dry-run)       dry_run=true ;;
@@ -274,6 +278,7 @@ do_deploy() {
     deploy_scripts=true
     deploy_configs=true
     deploy_hooks=true
+    deploy_claude_hooks=true
     deploy_references=true
     deploy_claudemd=true
   fi
@@ -561,6 +566,27 @@ do_deploy() {
     echo ""
   fi
 
+  # ── Claude Code Hooks ──
+  if [[ "$deploy_claude_hooks" == "true" ]]; then
+    info "Deploying Claude Code hooks..."
+    for hook in "$abs_devkit"/.claude/hooks/*.sh; do
+      [[ -f "$hook" ]] || continue
+      local basename_hook
+      basename_hook=$(basename "$hook")
+      local dst=".claude/hooks/$basename_hook"
+      if copy_file "$hook" "$dst" "$force" "$dry_run"; then
+        if [[ "$dry_run" != "true" ]]; then
+          chmod +x "$dst"
+          manifest_add "$dst" "$(file_hash "$dst")"
+          deployed=$((deployed + 1))
+        fi
+      else
+        skipped=$((skipped + 1))
+      fi
+    done
+    echo ""
+  fi
+
   # ── CLAUDE.md ──
   if [[ "$deploy_claudemd" == "true" ]]; then
     local claudemd_src="$abs_devkit/templates/CLAUDE.md.template"
@@ -660,6 +686,13 @@ do_uninstall() {
   if [[ -d ".claude/rules" ]]; then
     if [[ -z "$(ls -A .claude/rules 2>/dev/null)" ]]; then
       rmdir ".claude/rules" 2>/dev/null && info "Removed empty dir: .claude/rules"
+    fi
+  fi
+
+  # Try to remove empty .claude/hooks if no user hooks remain
+  if [[ -d ".claude/hooks" ]]; then
+    if [[ -z "$(ls -A .claude/hooks 2>/dev/null)" ]]; then
+      rmdir ".claude/hooks" 2>/dev/null && info "Removed empty dir: .claude/hooks"
     fi
   fi
 

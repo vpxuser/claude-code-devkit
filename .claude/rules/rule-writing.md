@@ -8,8 +8,8 @@ description: >
 
 # Rule 编写规范
 
-> 本规则是项目 L1-L4 约束体系的 **L2 层**，约束 `.claude/rules/` 下所有 `.md` 文件的编写方式。
-> L1 思考模式见 `design-thinking.md` | L3 输出模板见 `templates/RULE.md.template` | L4 校验见 `*-reviewer.md` agents。
+> 本规则是项目 L1-L5 约束体系的 **L2 层**，约束 `.claude/rules/` 下所有 `.md` 文件的编写方式。
+> L1 思考模式见 `design-thinking.md` | L3 输出模板见 `templates/RULE.md.template` | L4 校验见 `*-reviewer.md` agents | L5 脚本校验见 `scripts/check-constraints.sh`。
 >
 > 官方规范来源：https://docs.anthropic.com/en/docs/claude-code/memory
 

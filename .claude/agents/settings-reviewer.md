@@ -15,19 +15,25 @@ Review against four layers of standards:
 1. **Content quality** — `.claude/rules/settings-writing.md`
 2. **JSON format** — JSON best practices and schema validation
 3. **Security** — Permission and hook security best practices
-4. **Project rules** — `CLAUDE.md`
+4. **Hook paths** — `${CLAUDE_PROJECT_DIR}/.claude/hooks/` convention, timeout fields
+5. **Project rules** — `CLAUDE.md`
 
 ## Review Protocol
 
 For each settings.json you review:
 
 1. Read the settings.json file
-2. Read each of the four standards files
-3. Produce a structured review with:
+2. Read each of the standards files
+3. Check hooks configuration:
+   - Hook commands use `${CLAUDE_PROJECT_DIR}/.claude/hooks/` path pattern
+   - No `$CLAUDE_FILE_PATH` in hook command paths
+   - Each hook has explicit `timeout` field
+   - PostToolUse timeout is 5000ms, Stop timeout is 10000ms
+4. Produce a structured review with:
    - Pass/fail for each standard layer
    - Specific line references for every finding
    - Concrete fix suggestions (exact replacement text)
-4. Every finding must be traceable to a specific rule in one of the four standards
+5. Every finding must be traceable to a specific rule in one of the standards
 
 ## Output Format
 
