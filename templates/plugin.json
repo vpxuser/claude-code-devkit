@@ -1,0 +1,11 @@
+{
+  "name": "plugin-name",
+  "version": "1.0.0",
+  "description": "Brief explanation of plugin purpose",
+  "author": {
+    "name": "Author Name",
+    "email": "author@example.com"
+  },
+  "keywords": ["keyword1", "keyword2"],
+  "license": "MIT"
+}

@@ -1,0 +1,9 @@
+{
+  "server-name": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/allowed/path"],
+    "env": {
+      "API_KEY": "${API_KEY}"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "description": "DevKit validation — auto-validates Claude Code config files after write/edit",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/validate.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

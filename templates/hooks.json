@@ -1,0 +1,29 @@
+{
+  "description": "Optional description of hooks purpose",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Evaluate if this file write is safe. Check: system paths, credentials, path traversal. Return 'approve' or 'deny' with reason.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Verify task completion: all requirements met, no errors. Return 'approve' to stop or 'block' with reason to continue.",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

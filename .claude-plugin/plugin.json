@@ -1,0 +1,11 @@
+{
+  "name": "claude-code-devkit",
+  "version": "1.0.0",
+  "description": "Design philosophy skill, validation hooks, and file generators for Claude Code configuration files. Install this plugin to get auto-validation of SKILL.md, Agent.md, .mcp.json, hooks.json, plugin.json, settings.json, commands, and CLAUDE.md files after every write.",
+  "author": {
+    "name": "DevKit"
+  },
+  "keywords": ["validation", "skills", "agents", "mcp", "hooks", "plugin", "devkit", "design-philosophy"],
+  "license": "MIT",
+  "hooks": "./hooks/hooks.json"
+}
