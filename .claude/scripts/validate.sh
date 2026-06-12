@@ -8,7 +8,7 @@ set -euo pipefail
 
 # Parse file path from tool input JSON
 get_file_path() {
-  local input="${1:-$TOOL_INPUT}"
+  local input="${1:-${TOOL_INPUT:-}}"
   # Handle empty input
   if [ -z "$input" ]; then
     echo ""
@@ -456,19 +456,134 @@ validate_settings() {
 
   validate_json "$file" || return 1
 
-  # Check known top-level keys
+  local valid_top_keys="permissions hooks mcpServers model theme env includeCoAuthoredBy"
   local keys
   keys=$(jq -r 'keys[]' "$file" 2>/dev/null | tr -d '\r' || echo "")
   for key in $keys; do
-    case "$key" in
-      permissions|hooks|mcpServers)
-        # Valid keys
+    case " $valid_top_keys " in
+      *" $key "*)
         ;;
       *)
         echo "  [INFO] Unknown top-level key: '$key'"
         ;;
     esac
   done
+
+  # ---- permissions ----
+  if jq -e '.permissions' "$file" > /dev/null 2>&1; then
+    if jq -e '.permissions | has("allow")' "$file" > /dev/null 2>&1; then
+      local allow_count
+      allow_count=$(jq '.permissions.allow | length' "$file")
+      echo "  [INFO] permissions.allow: $allow_count entries"
+    fi
+    if jq -e '.permissions | has("block")' "$file" > /dev/null 2>&1; then
+      local block_count
+      block_count=$(jq '.permissions.block | length' "$file")
+      echo "  [INFO] permissions.block: $block_count entries"
+    fi
+  fi
+
+  # ---- hooks ----
+  if jq -e '.hooks' "$file" > /dev/null 2>&1; then
+    local valid_events="PreToolUse PostToolUse Stop SubagentStop SessionStart SessionEnd UserPromptSubmit PreCompact"
+    local hook_events
+    hook_events=$(jq -r '.hooks | keys[]' "$file" | tr -d '\r')
+    for event in $hook_events; do
+      if ! echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
+        echo "  [WARN] Unknown hook event: '$event'"
+        issues=$((issues + 1))
+        continue
+      fi
+
+      # For each event, check nested hook entries
+      local entries
+      entries=$(jq -r ".hooks[\"$event\"] | length" "$file")
+      for i in $(seq 0 $((entries - 1))); do
+        local matcher
+        matcher=$(jq -r ".hooks[\"$event\"][$i].matcher // \"*\"" "$file")
+        local hooks_in_entry
+        hooks_in_entry=$(jq -r ".hooks[\"$event\"][$i].hooks | length" "$file")
+        for j in $(seq 0 $((hooks_in_entry - 1))); do
+          local hook_type
+          hook_type=$(jq -r ".hooks[\"$event\"][$i].hooks[$j].type" "$file" 2>/dev/null || echo "null")
+
+          case "$hook_type" in
+            command)
+              local cmd
+              cmd=$(jq -r ".hooks[\"$event\"][$i].hooks[$j].command // \"\"" "$file")
+              if [ -z "$cmd" ]; then
+                echo "  [ERROR] hooks.$event[$i].hooks[$j]: command type requires 'command' field"
+                issues=$((issues + 1))
+              fi
+              ;;
+            prompt)
+              if [ "$event" = "SessionStart" ] || [ "$event" = "Setup" ] || [ "$event" = "SubagentStart" ]; then
+                echo "  [ERROR] hooks.$event[$i].hooks[$j]: prompt-type hooks are not supported for $event (no conversation context). Use command-type instead."
+                issues=$((issues + 1))
+              fi
+              local prompt_text
+              prompt_text=$(jq -r ".hooks[\"$event\"][$i].hooks[$j].prompt // \"\"" "$file")
+              if [ -z "$prompt_text" ]; then
+                echo "  [ERROR] hooks.$event[$i].hooks[$j]: prompt type requires 'prompt' field"
+                issues=$((issues + 1))
+              fi
+              ;;
+            agent)
+              if [ "$event" = "SessionStart" ] || [ "$event" = "Setup" ] || [ "$event" = "SubagentStart" ]; then
+                echo "  [ERROR] hooks.$event[$i].hooks[$j]: agent-type hooks are not supported for $event. Use command-type instead."
+                issues=$((issues + 1))
+              fi
+              ;;
+            null|"")
+              echo "  [ERROR] hooks.$event[$i].hooks[$j]: missing 'type' field (must be command|prompt|agent)"
+              issues=$((issues + 1))
+              ;;
+            *)
+              echo "  [WARN] hooks.$event[$i].hooks[$j]: unknown hook type '$hook_type'"
+              ;;
+          esac
+        done
+      done
+    done
+  fi
+
+  # ---- mcpServers ----
+  if jq -e '.mcpServers' "$file" > /dev/null 2>&1; then
+    local server_count
+    server_count=$(jq '.mcpServers | length' "$file")
+    if [ "$server_count" -eq 0 ]; then
+      echo "  [WARN] mcpServers is empty"
+    else
+      echo "  [INFO] mcpServers: $server_count server(s)"
+      local servers
+      servers=$(jq -r '.mcpServers | keys[]' "$file" | tr -d '\r')
+      for server in $servers; do
+        local srv_type
+        srv_type=$(jq -r ".mcpServers[\"$server\"].type // \"stdio\"" "$file")
+        case "$srv_type" in
+          stdio)
+            local cmd
+            cmd=$(jq -r ".mcpServers[\"$server\"].command // \"\"" "$file")
+            if [ -z "$cmd" ]; then
+              echo "  [ERROR] mcpServers.$server: stdio type requires 'command'"
+              issues=$((issues + 1))
+            fi
+            ;;
+          http|streamable-http|sse)
+            local url
+            url=$(jq -r ".mcpServers[\"$server\"].url // \"\"" "$file")
+            if [ -z "$url" ]; then
+              echo "  [ERROR] mcpServers.$server: $srv_type requires 'url' field"
+              issues=$((issues + 1))
+            fi
+            ;;
+          *)
+            echo "  [WARN] mcpServers.$server: unknown type '$srv_type'"
+            ;;
+        esac
+      done
+    fi
+  fi
 
   if [ "$issues" -eq 0 ]; then
     echo "  [PASS] settings.json validation passed"
@@ -603,9 +718,63 @@ main() {
 
   echo ""
 
-  # Exit 2 means stderr is fed back to Claude (issues found)
+  # Guidance: when issues found, point Claude to specific sections
   if [ "$exit_code" -gt 0 ]; then
-    echo "[RESULT] $exit_code issue(s) found — review suggested fixes above."
+    local guide=""
+    local section=""
+    case "$file_type" in
+      skill)
+        guide="skill-guide.md"
+        section="Body Writing Rules + Frontmatter"
+        ;;
+      agent)
+        guide="agent-guide.md"
+        section="Frontmatter Fields + Structure"
+        ;;
+      mcp)
+        guide="mcp-guide.md"
+        section="Server Type Selection + Configurations"
+        ;;
+      hooks)
+        guide="hooks-guide.md"
+        section="Configuration Formats + Hook Events"
+        ;;
+      plugin)
+        guide="plugin-guide.md"
+        section="Manifest (plugin.json) + Component Rules"
+        ;;
+      settings)
+        guide="settings-guide.md"
+        section="Structure + Permission Patterns"
+        ;;
+      command)
+        guide="command-guide.md"
+        section="Key Rule + Format + Writing Style"
+        ;;
+      claude-md)
+        guide="claude-md-guide.md"
+        section="Writing Style + What to Include"
+        ;;
+    esac
+    echo "━━━ Guidance ━━━"
+    echo "Issues found. Read the relevant spec:"
+    echo ""
+    echo "  General design philosophy:"
+    echo "    .claude/skills/claude-code-design-philosophy/SKILL.md"
+    if [ -n "$guide" ]; then
+      local guide_path=""
+      if [ -f "guides/$guide" ]; then
+        guide_path="guides/$guide"
+      elif [ -f ".claude/devkit-guides/$guide" ]; then
+        guide_path=".claude/devkit-guides/$guide"
+      fi
+      if [ -n "$guide_path" ]; then
+        echo "  $file_type specification → $guide_path"
+        echo "    Key sections: $section"
+      fi
+    fi
+    echo "━━━━━━━━━━━━━━"
+    echo "[RESULT] $exit_code issue(s) found — see guides above for correct patterns."
     exit 2
   else
     echo "[RESULT] All checks passed."

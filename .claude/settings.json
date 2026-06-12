@@ -29,8 +29,8 @@
         "matcher": "*",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Welcome to Claude Code DevKit. This project helps you generate correct Claude Code configuration files (SKILL.md, Agent.md, .mcp.json, hooks.json, plugin.json, settings.json, commands, CLAUDE.md). Generated files are automatically validated after writing. Type /generate-file <type> to start, or describe what you need.",
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Welcome to Claude Code DevKit. This project helps you generate correct Claude Code configuration files (SKILL.md, Agent.md, .mcp.json, hooks.json, plugin.json, settings.json, commands, CLAUDE.md). Generated files are automatically validated after writing. Type /generate-file <type> to start, or describe what you need.\"}'",
             "timeout": 10
           }
         ]
