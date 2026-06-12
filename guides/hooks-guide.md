@@ -41,7 +41,9 @@ Rules for generating hook configurations.
 ### Settings hooks (settings.json)
 ```json
 {
-  "PreToolUse": [...]
+  "hooks": {
+    "PreToolUse": [...]
+  }
 }
 ```
 

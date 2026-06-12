@@ -1,21 +1,47 @@
 #!/bin/bash
 # Claude Code File Validator
-# Called by PostToolUse hook after Write/Edit operations
-# Parses $TOOL_INPUT to get file_path, detects type, runs validation
+# Called by:
+#   - PostToolUse command hook (input via stdin: {"inputs": {"file_path": "..."}, "response": {...}})
+#   - /validate command (file path as argument)
+#   - PostToolUse prompt hook (input via $TOOL_INPUT env var)
 set -euo pipefail
 
 # ---- Utility Functions ----
 
-# Parse file path from tool input JSON
+# Parse file path from various input sources
+# Priority: stdin (command hook) > argument > $TOOL_INPUT env var
 get_file_path() {
-  local input="${1:-${TOOL_INPUT:-}}"
-  # Handle empty input
+  local input=""
+  local path=""
+
+  # 1. Try stdin first — PostToolUse command hooks pass JSON here
+  if [ ! -t 0 ]; then
+    input=$(cat 2>/dev/null || true)
+  fi
+
+  # 2. Fall back to argument
+  if [ -z "$input" ] && [ -n "${1:-}" ]; then
+    input="$1"
+  fi
+
+  # 3. Fall back to TOOL_INPUT env var (prompt hooks)
+  if [ -z "$input" ]; then
+    input="${TOOL_INPUT:-}"
+  fi
+
+  # Empty input → no file to validate
   if [ -z "$input" ]; then
     echo ""
     return
   fi
-  # Extract file_path from JSON (handles both Write and Edit tool input)
-  echo "$input" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//'
+
+  # Extract file_path using jq (handles nested JSON structures)
+  # Command hook:   {"inputs": {"file_path": "..."}, "response": {...}}
+  # PreToolUse:     {"tool_input": {"file_path": "..."}}
+  # Direct input:   {"file_path": "..."}
+  path=$(echo "$input" | jq -r '.inputs.file_path // .tool_input.file_path // .file_path // ""' 2>/dev/null || echo "")
+
+  echo "$path"
 }
 
 # Detect file type from path
@@ -132,7 +158,7 @@ validate_name_format() {
   if [ -n "$name" ]; then
     # Check kebab-case: lowercase, numbers, hyphens only
     if ! echo "$name" | grep -qE '^[a-z0-9][a-z0-9-]*[a-z0-9]$' && ! echo "$name" | grep -qE '^[a-z0-9]$'; then
-      echo "  [WARN] Name '$name' should be kebab-case (lowercase letters, numbers, hyphens only)"
+      echo "  [ERROR] Name '$name' should be kebab-case (lowercase letters, numbers, hyphens only)"
       issues=$((issues + 1))
     fi
 
@@ -177,7 +203,7 @@ validate_description() {
 
   # Check length <= 1024
   if [ ${#desc_value} -gt 1024 ]; then
-    echo "  [WARN] 'description' exceeds 1024 characters (${#desc_value})"
+    echo "  [ERROR] 'description' exceeds 1024 characters (${#desc_value})"
   fi
 
   # Check for XML tags if needed
@@ -208,8 +234,8 @@ validate_skill() {
   echo "  [SKILL.md] Validating skill definition..."
 
   validate_yaml_frontmatter "$file" || issues=$((issues + $?))
-  validate_name_format "$file" || true
-  validate_description "$file" "true" || true
+  validate_name_format "$file" || issues=$((issues + $?))
+  validate_description "$file" "true" || issues=$((issues + $?))
 
   # Check body is not empty
   local body
@@ -223,7 +249,7 @@ validate_skill() {
 
   # Body length: keep under 500 lines per spec
   if [ "$body_lines" -gt 500 ]; then
-    echo "  [WARN] Body is $body_lines lines (recommended: under 500). Split content into references/."
+    echo "  [ERROR] Body is $body_lines lines (recommended: under 500). Split content into references/."
     issues=$((issues + 1))
   fi
 
@@ -248,7 +274,7 @@ validate_skill() {
   local imperatives
   imperatives=$(echo "$body" | grep -viE 'not ['\''"](you|i)' | grep -ciE '(you should|i recommend|you can|you need to|you will|you must)')
   if [ "$imperatives" -gt 0 ]; then
-    echo "  [WARN] Body uses 'you should'/'I recommend' style. Use imperative: 'Extract text' not 'You should extract text'."
+    echo "  [ERROR] Body uses 'you should'/'I recommend' style. Use imperative: 'Extract text' not 'You should extract text'."
     issues=$((issues + 1))
   fi
 
@@ -256,19 +282,19 @@ validate_skill() {
   local long_explanations
   long_explanations=$(echo "$body" | grep -cE '(is a (popular|common|powerful|widely-used)|is a (library|tool|framework|language|format) (that|which|used for))')
   if [ "$long_explanations" -gt 0 ]; then
-    echo "  [WARN] Body explains concepts Claude already knows. Be concise."
+    echo "  [ERROR] Body explains concepts Claude already knows. Be concise."
     issues=$((issues + 1))
   fi
 
   # Anti-pattern 3: Multiple options without default
   if echo "$body" | grep -qiE '(you can use.*or|alternatives include|another option is|there are (many|several|multiple) (ways|options|libraries|tools))'; then
-    echo "  [WARN] Body presents multiple options without a default. Pick one, mention alternatives after."
+    echo "  [ERROR] Body presents multiple options without a default. Pick one, mention alternatives after."
     issues=$((issues + 1))
   fi
 
   # Anti-pattern 4: Time-sensitive information
   if echo "$body" | grep -qiE '(before (january|february|march|april|may|june|july|august|september|october|november|december) [0-9]{4}|after [a-z]+ [0-9]{4})'; then
-    echo "  [WARN] Body contains time-sensitive dates that may become outdated."
+    echo "  [ERROR] Body contains time-sensitive dates that may become outdated."
     issues=$((issues + 1))
   fi
 
@@ -302,7 +328,7 @@ validate_agent() {
     issues=$((issues + 1))
   fi
   if ! echo "$desc" | grep -q '<commentary>'; then
-    echo "  [WARN] Agent examples should include <commentary> sections"
+    echo "  [ERROR] Agent examples should include <commentary> sections"
   fi
 
   # Check model field
@@ -361,7 +387,7 @@ validate_mcp() {
         fi
         ;;
       *)
-        echo "  [WARN] Server '$server': unknown type '$type'"
+        echo "  [ERROR] Server '$server': unknown type '$type'"
         ;;
     esac
   done
@@ -389,7 +415,7 @@ validate_hooks() {
     events=$(jq -r '.hooks | keys[]' "$file" | tr -d '\r')
     for event in $events; do
       if ! echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
-        echo "  [WARN] Unknown hook event: '$event'"
+        echo "  [ERROR] Unknown hook event: '$event'"
       fi
     done
 
@@ -397,7 +423,7 @@ validate_hooks() {
     local hook_count
     hook_count=$(jq '[.hooks[] | length] | add // 0' "$file" 2>/dev/null || echo 0)
     if [ "$hook_count" -eq 0 ]; then
-      echo "  [WARN] No hook configurations found"
+      echo "  [ERROR] No hook configurations found"
     fi
   else
     # Settings format - events at top level
@@ -408,7 +434,7 @@ validate_hooks() {
         local hooks_in_event
         hooks_in_event=$(jq ".[\"$event\"] | length" "$file")
         if [ "$hooks_in_event" -eq 0 ]; then
-          echo "  [WARN] Event '$event' has no hook configurations"
+          echo "  [ERROR] Event '$event' has no hook configurations"
         fi
       else
         echo "  [INFO] Skipping non-event key: '$event'"
@@ -438,7 +464,7 @@ validate_plugin() {
     local name
     name=$(jq -r '.name' "$file")
     if ! echo "$name" | grep -qE '^[a-z0-9][a-z0-9-]*[a-z0-9]$' && ! echo "$name" | grep -qE '^[a-z0-9]$'; then
-      echo "  [WARN] Plugin name '$name' should be kebab-case"
+      echo "  [ERROR] Plugin name '$name' should be kebab-case"
     fi
   fi
 
@@ -490,7 +516,7 @@ validate_settings() {
     hook_events=$(jq -r '.hooks | keys[]' "$file" | tr -d '\r')
     for event in $hook_events; do
       if ! echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
-        echo "  [WARN] Unknown hook event: '$event'"
+        echo "  [ERROR] Unknown hook event: '$event'"
         issues=$((issues + 1))
         continue
       fi
@@ -539,7 +565,7 @@ validate_settings() {
               issues=$((issues + 1))
               ;;
             *)
-              echo "  [WARN] hooks.$event[$i].hooks[$j]: unknown hook type '$hook_type'"
+              echo "  [ERROR] hooks.$event[$i].hooks[$j]: unknown hook type '$hook_type'"
               ;;
           esac
         done
@@ -552,7 +578,7 @@ validate_settings() {
     local server_count
     server_count=$(jq '.mcpServers | length' "$file")
     if [ "$server_count" -eq 0 ]; then
-      echo "  [WARN] mcpServers is empty"
+      echo "  [ERROR] mcpServers is empty"
     else
       echo "  [INFO] mcpServers: $server_count server(s)"
       local servers
@@ -578,7 +604,7 @@ validate_settings() {
             fi
             ;;
           *)
-            echo "  [WARN] mcpServers.$server: unknown type '$srv_type'"
+            echo "  [ERROR] mcpServers.$server: unknown type '$srv_type'"
             ;;
         esac
       done
@@ -606,7 +632,7 @@ validate_command() {
   first_line=$(echo "$body" | grep -v '^[[:space:]]*$' | head -1)
 
   if echo "$first_line" | grep -qiE '^this command will|^this will|^this command is|this command helps'; then
-    echo "  [WARN] Command appears to be written TO the user instead of instructions FOR Claude"
+    echo "  [ERROR] Command appears to be written TO the user instead of instructions FOR Claude"
     echo "   -> Write commands as directives: 'Review...', 'Analyze...', 'Create...'"
   fi
 
@@ -637,13 +663,13 @@ validate_claude_md() {
   line_count=$(wc -l < "$file")
 
   if [ "$line_count" -lt 3 ]; then
-    echo "  [WARN] CLAUDE.md seems too short ($line_count lines)"
+    echo "  [ERROR] CLAUDE.md seems too short ($line_count lines)"
     issues=$((issues + 1))
   fi
 
   # Check for vague content
   if grep -qiE '^# Project$|^# My Project$|^# (A|An|The) ' "$file" | head -1 > /dev/null 2>&1; then
-    echo "  [WARN] Title seems generic — consider a more specific project description"
+    echo "  [ERROR] Title seems generic — consider a more specific project description"
   fi
 
   if [ "$issues" -eq 0 ]; then
@@ -756,11 +782,11 @@ main() {
         section="Writing Style + What to Include"
         ;;
     esac
-    echo "━━━ Guidance ━━━"
-    echo "Issues found. Read the relevant spec:"
-    echo ""
-    echo "  General design philosophy:"
-    echo "    .claude/skills/claude-code-design-philosophy/SKILL.md"
+    echo "━━━ Guidance ━━━" >&2
+    echo "Issues found. Read the relevant spec:" >&2
+    echo "" >&2
+    echo "  General design philosophy:" >&2
+    echo "    .claude/skills/claude-code-design-philosophy/SKILL.md" >&2
     if [ -n "$guide" ]; then
       local guide_path=""
       if [ -f "guides/$guide" ]; then
@@ -769,12 +795,12 @@ main() {
         guide_path=".claude/devkit-guides/$guide"
       fi
       if [ -n "$guide_path" ]; then
-        echo "  $file_type specification → $guide_path"
-        echo "    Key sections: $section"
+        echo "  $file_type specification → $guide_path" >&2
+        echo "    Key sections: $section" >&2
       fi
     fi
-    echo "━━━━━━━━━━━━━━"
-    echo "[RESULT] $exit_code issue(s) found — see guides above for correct patterns."
+    echo "━━━━━━━━━━━━━━" >&2
+    echo "[RESULT] $exit_code issue(s) found — see guides above for correct patterns." >&2
     exit 2
   else
     echo "[RESULT] All checks passed."

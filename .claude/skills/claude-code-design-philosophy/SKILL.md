@@ -407,8 +407,10 @@ Event-driven automation scripts that execute in response to Claude Code events.
 **Settings format** (in `settings.json`):
 ```json
 {
-  "PreToolUse": [...],
-  "Stop": [...]
+  "hooks": {
+    "PreToolUse": [...],
+    "Stop": [...]
+  }
 }
 ```
 
