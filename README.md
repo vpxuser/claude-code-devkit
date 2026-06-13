@@ -6,7 +6,7 @@ This project serves as a living reference — it contains templates, guides, and
 
 ## How it works
 
-Claude Code reads the project's `.claude/CLAUDE.md` and `.claude/skills/claude-code-design-philosophy/SKILL.md` at startup. These files teach Claude Code the official design patterns for every file type it might need to generate. Template files in `templates/` serve as starting points, and guides in `guides/` provide detailed generation rules.
+Claude Code reads the project's `.claude/CLAUDE.md` and `.claude/skills/design-philosophy/SKILL.md` at startup. These files teach Claude Code the official design patterns for every file type it might need to generate. Template files in `templates/` serve as starting points, and guides in `guides/` provide detailed generation rules.
 
 ## File types covered
 
@@ -47,7 +47,7 @@ claude-code-devkit/
 │   ├── scripts/
 │   │   └── validate.sh        # Post-write validation engine for all file types
 │   ├── skills/
-│   │   └── claude-code-design-philosophy/
+│   │   └── design-philosophy/
 │   │       └── SKILL.md       # Core design philosophy skill
 │   └── commands/
 │       ├── generate-file.md   # /generate-file — scaffold any config file

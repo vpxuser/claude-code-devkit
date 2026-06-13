@@ -1,5 +1,5 @@
 ---
-name: claude-code-design-philosophy
+name: design-philosophy
 description: Teaches Claude Code the official design philosophy for every configuration file type it generates: skills (SKILL.md), agents (Agent.md), MCP servers (.mcp.json), hooks (hooks.json), settings (settings.json), plugins (plugin.json), commands (commands/*.md), and project instructions (CLAUDE.md). This skill should be used when the user asks to create, generate, scaffold, or edit any Claude Code file type, or references design decisions about these files.
 version: 1.0.0
 ---

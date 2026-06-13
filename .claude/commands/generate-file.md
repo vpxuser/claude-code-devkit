@@ -25,7 +25,7 @@ Parse the requested file type from the first argument.
 
 ## Step 2: Load the design philosophy
 
-Read the skill at `.claude/skills/claude-code-design-philosophy/SKILL.md` for the full specification of this file type.
+Read the skill at `.claude/skills/design-philosophy/SKILL.md` for the full specification of this file type.
 
 ## Step 3: Read the template
 

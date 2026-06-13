@@ -4,7 +4,7 @@ This project is a blueprint/reference for generating correct Claude Code configu
 
 ## Core behavior
 
-1. When asked to generate any Claude Code file (SKILL.md, Agent.md, .mcp.json, hooks.json, settings.json, plugin.json, commands/*.md, CLAUDE.md), load the `claude-code-design-philosophy` skill for authoritative specifications.
+1. When asked to generate any Claude Code file (SKILL.md, Agent.md, .mcp.json, hooks.json, settings.json, plugin.json, commands/*.md, CLAUDE.md), load the `design-philosophy` skill for authoritative specifications.
 2. Use the templates in `templates/` as starting points and fill in requested specifics.
 3. Reference the guides in `guides/` for detailed generation rules when the user needs depth on a specific file type.
 4. Use `/generate-file <type> [description]` for quick file generation.

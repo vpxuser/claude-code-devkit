@@ -172,7 +172,7 @@ run_diagnose() {
   fi
 
   # Check design philosophy skill
-  if [ -f "$TARGET/.claude/skills/claude-code-design-philosophy/SKILL.md" ]; then
+  if [ -f "$TARGET/.claude/skills/design-philosophy/SKILL.md" ]; then
     echo "  [design-philosophy skill] EXISTS"
   else
     warn "  [design-philosophy skill] NOT FOUND"
@@ -296,7 +296,7 @@ run_deploy() {
       jq \
         --argjson new_perms "$perm_array" \
         '.permissions.allow = ((.permissions.allow // []) + $new_perms | unique)
-         | .hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/scripts/validate.sh", "timeout": 30}]}]' \
+         | .hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "cd ${CLAUDE_PROJECT_DIR} && bash .claude/scripts/validate.sh --recent-only", "timeout": 30}]}]' \
         "$TARGET_SETTINGS" > "${TARGET_SETTINGS}.tmp" && mv "${TARGET_SETTINGS}.tmp" "$TARGET_SETTINGS"
 
       echo "  [MERGE] permissions + hooks → $(basename "$TARGET_SETTINGS")"
@@ -317,7 +317,7 @@ run_deploy() {
         "hooks": [
           {
             "type": "command",
-            "command": "bash \${CLAUDE_PROJECT_DIR}/.claude/scripts/validate.sh",
+            "command": "cd \${CLAUDE_PROJECT_DIR} && bash .claude/scripts/validate.sh --recent-only",
             "timeout": 30
           }
         ]
@@ -340,8 +340,8 @@ JSONEOF
 
     # Design philosophy skill
     do_copy \
-      "$DEVKIT_DIR/.claude/skills/claude-code-design-philosophy/SKILL.md" \
-      "$TARGET/.claude/skills/claude-code-design-philosophy/SKILL.md"
+      "$DEVKIT_DIR/.claude/skills/design-philosophy/SKILL.md" \
+      "$TARGET/.claude/skills/design-philosophy/SKILL.md"
     if [ "$DRY_RUN" = false ]; then
       INSTALLED+=("design-philosophy skill")
     fi
@@ -369,11 +369,11 @@ JSONEOF
     # Update target's CLAUDE.md to reference the skill
     local TARGET_CLAUDE="$TARGET/.claude/CLAUDE.md"
     if [ "$DRY_RUN" = false ] && [ -f "$TARGET_CLAUDE" ]; then
-      if ! grep -q "claude-code-design-philosophy" "$TARGET_CLAUDE" 2>/dev/null; then
+      if ! grep -q "design-philosophy" "$TARGET_CLAUDE" 2>/dev/null; then
         echo "" >> "$TARGET_CLAUDE"
         echo "## DevKit Integration" >> "$TARGET_CLAUDE"
         echo "This project uses Claude Code DevKit for config file validation." >> "$TARGET_CLAUDE"
-        echo "The design philosophy skill is at \`.claude/skills/claude-code-design-philosophy/SKILL.md\`" >> "$TARGET_CLAUDE"
+        echo "The design philosophy skill is at \`.claude/skills/design-philosophy/SKILL.md\`" >> "$TARGET_CLAUDE"
         echo "  [APPEND] reference in .claude/CLAUDE.md"
         INSTALLED+=("CLAUDE.md reference")
       else
@@ -426,7 +426,7 @@ JSONEOF
   echo "  .claude/scripts/validate.sh"
   echo "  .claude/commands/validate.md"
   echo "  .claude/commands/generate-file.md (if present)"
-  echo "  .claude/skills/claude-code-design-philosophy/ (if present)"
+  echo "  .claude/skills/design-philosophy/ (if present)"
   echo "  .claude/devkit-guides/ (if present)"
   echo "  .claude/devkit-templates/ (if present)"
   echo "  And restore .claude/settings.json to remove hooks and added permissions"

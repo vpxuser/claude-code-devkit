@@ -1,48 +1,11 @@
 #!/bin/bash
 # Claude Code File Validator
 # Called by:
-#   - PostToolUse command hook (input via stdin: {"inputs": {"file_path": "..."}, "response": {...}})
-#   - /validate command (file path as argument)
-#   - PostToolUse prompt hook (input via $TOOL_INPUT env var)
+#   - PostToolUse hook (no argument): scans .claude/ dirs for all config files
+#   - /validate command (file path): validates that specific file only
 set -euo pipefail
 
 # ---- Utility Functions ----
-
-# Parse file path from various input sources
-# Priority: stdin (command hook) > argument > $TOOL_INPUT env var
-get_file_path() {
-  local input=""
-  local path=""
-
-  # 1. Try stdin first — PostToolUse command hooks pass JSON here
-  if [ ! -t 0 ]; then
-    input=$(cat 2>/dev/null || true)
-  fi
-
-  # 2. Fall back to argument
-  if [ -z "$input" ] && [ -n "${1:-}" ]; then
-    input="$1"
-  fi
-
-  # 3. Fall back to TOOL_INPUT env var (prompt hooks)
-  if [ -z "$input" ]; then
-    input="${TOOL_INPUT:-}"
-  fi
-
-  # Empty input → no file to validate
-  if [ -z "$input" ]; then
-    echo ""
-    return
-  fi
-
-  # Extract file_path using jq (handles nested JSON structures)
-  # Command hook:   {"inputs": {"file_path": "..."}, "response": {...}}
-  # PreToolUse:     {"tool_input": {"file_path": "..."}}
-  # Direct input:   {"file_path": "..."}
-  path=$(echo "$input" | jq -r '.inputs.file_path // .tool_input.file_path // .file_path // ""' 2>/dev/null || echo "")
-
-  echo "$path"
-}
 
 # Detect file type from path
 detect_type() {
@@ -681,26 +644,99 @@ validate_claude_md() {
 # ---- Main ----
 
 main() {
-  local file_path="${1:-}"
+  local arg="${1:-}"
 
-  # If no argument, try to get from $TOOL_INPUT (PostToolUse hook)
-  if [ -z "$file_path" ]; then
-    file_path=$(get_file_path)
-  fi
-
-  # If still no path or not a relevant file, exit cleanly
-  if [ -z "$file_path" ] || [ ! -f "$file_path" ]; then
+  # --recent-only mode (for PostToolUse hook): only scan if a .claude/ file
+  # was modified within the last minute — avoids scanning on unrelated writes
+  if [ "$arg" = "--recent-only" ]; then
+    if find .claude -type f -mmin -2 2>/dev/null | grep -q .; then
+      scan_all
+    fi
     exit 0
   fi
 
-  # Normalize path separators (handle Windows paths in Git Bash)
-  file_path=$(echo "$file_path" | sed 's|\\|/|g')
-
-  # Only validate if it's a relevant file
-  if ! is_relevant_path "$file_path"; then
+  # Specific file path given (via /validate command) → validate one file
+  if [ -n "$arg" ]; then
+    arg=$(echo "$arg" | sed 's|\\|/|g')
+    if [ -f "$arg" ] && is_relevant_path "$arg"; then
+      validate_one "$arg"
+      local rc=$?
+      exit $rc
+    fi
     exit 0
   fi
 
+  # No argument → scan all known Claude Code config directories
+  scan_all
+}
+
+scan_all() {
+  echo "=== Scanning all Claude Code config files ==="
+  echo ""
+
+  local found=0
+  local issues=0
+
+  # Skills: .claude/skills/*/SKILL.md
+  while IFS= read -r -d '' f; do
+    validate_one "$f" || issues=$((issues + $?))
+    found=1
+  done < <(find .claude/skills -name "SKILL.md" -type f 2>/dev/null -print0 || true)
+
+  # Agents: .claude/agents/*.md
+  while IFS= read -r -d '' f; do
+    validate_one "$f" || issues=$((issues + $?))
+    found=1
+  done < <(find .claude/agents -maxdepth 1 -name "*.md" -type f 2>/dev/null -print0 || true)
+
+  # Commands: .claude/commands/*.md
+  while IFS= read -r -d '' f; do
+    validate_one "$f" || issues=$((issues + $?))
+    found=1
+  done < <(find .claude/commands -maxdepth 1 -name "*.md" -type f 2>/dev/null -print0 || true)
+
+  # Settings files
+  for f in .claude/settings.json .claude/settings.local.json; do
+    if [ -f "$f" ]; then
+      validate_one "$f" || issues=$((issues + $?))
+      found=1
+    fi
+  done
+
+  # Project instructions
+  if [ -f .claude/CLAUDE.md ]; then
+    validate_one .claude/CLAUDE.md || issues=$((issues + $?))
+    found=1
+  fi
+
+  # Plugin manifest
+  if [ -f .claude-plugin/plugin.json ]; then
+    validate_one .claude-plugin/plugin.json || issues=$((issues + $?))
+    found=1
+  fi
+
+  # Hooks config
+  if [ -f hooks/hooks.json ]; then
+    validate_one hooks/hooks.json || issues=$((issues + $?))
+    found=1
+  fi
+
+  # MCP config
+  if [ -f .mcp.json ]; then
+    validate_one .mcp.json || issues=$((issues + $?))
+    found=1
+  fi
+
+  if [ "$found" -eq 0 ]; then
+    echo "No Claude Code config files found."
+    exit 0
+  fi
+
+  return $issues
+}
+
+validate_one() {
+  local file_path="$1"
   local file_type
   file_type=$(detect_type "$file_path")
 
@@ -786,7 +822,7 @@ main() {
     echo "Issues found. Read the relevant spec:" >&2
     echo "" >&2
     echo "  General design philosophy:" >&2
-    echo "    .claude/skills/claude-code-design-philosophy/SKILL.md" >&2
+    echo "    .claude/skills/design-philosophy/SKILL.md" >&2
     if [ -n "$guide" ]; then
       local guide_path=""
       if [ -f "guides/$guide" ]; then
