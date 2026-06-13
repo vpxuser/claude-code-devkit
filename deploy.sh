@@ -296,7 +296,7 @@ run_deploy() {
       jq \
         --argjson new_perms "$perm_array" \
         '.permissions.allow = ((.permissions.allow // []) + $new_perms | unique)
-         | .hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "bash .claude/scripts/validate.sh --recent-only", "timeout": 30}]}]' \
+         | .hooks.PostToolUse = [{"matcher": "Edit", "hooks": [{"type": "command", "if": "Edit(*.claude*)", "command": "bash .claude/scripts/validate.sh", "timeout": 30}]}, {"matcher": "Write", "hooks": [{"type": "command", "if": "Write(*.claude*)", "command": "bash .claude/scripts/validate.sh", "timeout": 30}]}]' \
         "$TARGET_SETTINGS" > "${TARGET_SETTINGS}.tmp" && mv "${TARGET_SETTINGS}.tmp" "$TARGET_SETTINGS"
 
       echo "  [MERGE] permissions + hooks → $(basename "$TARGET_SETTINGS")"
@@ -313,11 +313,23 @@ run_deploy() {
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/scripts/validate.sh --recent-only",
+            "if": "Edit(*.claude*)",
+            "command": "bash .claude/scripts/validate.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(*.claude*)",
+            "command": "bash .claude/scripts/validate.sh",
             "timeout": 30
           }
         ]

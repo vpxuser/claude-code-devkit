@@ -1,8 +1,8 @@
 #!/bin/bash
 # Claude Code File Validator
 # Called by:
-#   - PostToolUse hook (no argument): scans .claude/ dirs for all config files
-#   - /validate command (file path): validates that specific file only
+#   - PostToolUse hook (no argument): scans all .claude/ config files
+#   - /validate command (file path): validates that specific file
 set -euo pipefail
 
 # Auto-detect project root: validate.sh lives at .claude/scripts/validate.sh
@@ -651,16 +651,7 @@ validate_claude_md() {
 main() {
   local arg="${1:-}"
 
-  # --recent-only mode (for PostToolUse hook): only scan if a .claude/ file
-  # was modified within the last minute — avoids scanning on unrelated writes
-  if [ "$arg" = "--recent-only" ]; then
-    if find .claude -type f -mmin -2 2>/dev/null | grep -q .; then
-      scan_all
-    fi
-    exit 0
-  fi
-
-  # Specific file path given (via /validate command) → validate one file
+  # File path given (via /validate command) → validate that file
   if [ -n "$arg" ]; then
     arg=$(echo "$arg" | sed 's|\\|/|g')
     if [ -f "$arg" ] && is_relevant_path "$arg"; then

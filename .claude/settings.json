@@ -14,11 +14,23 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/scripts/validate.sh --recent-only",
+            "if": "Edit(*.claude*)",
+            "command": "bash .claude/scripts/validate.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(*.claude*)",
+            "command": "bash .claude/scripts/validate.sh",
             "timeout": 30
           }
         ]
