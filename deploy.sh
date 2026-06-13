@@ -17,7 +17,7 @@ DIAGNOSE=false
 
 # Required permissions for the validation hook to function
 REQUIRED_PERMISSIONS=(
-  "Bash(bash \${CLAUDE_PROJECT_DIR}/.claude/scripts/validate.sh*)"
+  "Bash(bash .claude/scripts/validate.sh*)"
   "Bash(jq *)"
 )
 
@@ -296,7 +296,7 @@ run_deploy() {
       jq \
         --argjson new_perms "$perm_array" \
         '.permissions.allow = ((.permissions.allow // []) + $new_perms | unique)
-         | .hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "cd ${CLAUDE_PROJECT_DIR} && bash .claude/scripts/validate.sh --recent-only", "timeout": 30}]}]' \
+         | .hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "bash .claude/scripts/validate.sh --recent-only", "timeout": 30}]}]' \
         "$TARGET_SETTINGS" > "${TARGET_SETTINGS}.tmp" && mv "${TARGET_SETTINGS}.tmp" "$TARGET_SETTINGS"
 
       echo "  [MERGE] permissions + hooks → $(basename "$TARGET_SETTINGS")"
@@ -306,7 +306,7 @@ run_deploy() {
 {
   "permissions": {
     "allow": [
-      "Bash(bash \${CLAUDE_PROJECT_DIR}/.claude/scripts/validate.sh*)",
+      "Bash(bash .claude/scripts/validate.sh*)",
       "Bash(jq *)"
     ]
   },
@@ -317,7 +317,7 @@ run_deploy() {
         "hooks": [
           {
             "type": "command",
-            "command": "cd \${CLAUDE_PROJECT_DIR} && bash .claude/scripts/validate.sh --recent-only",
+            "command": "bash .claude/scripts/validate.sh --recent-only",
             "timeout": 30
           }
         ]
