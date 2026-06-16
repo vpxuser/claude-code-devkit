@@ -43,10 +43,13 @@ detect_type() {
       echo "claude-md"
       ;;
     *.md)
-      # Might be a command file
+      # Might be a command or agent file
       case "$dirname" in
         *commands*|*/command*)
           echo "command"
+          ;;
+        *agents*|*/agent*)
+          echo "agent"
           ;;
         *)
           echo "unknown"
@@ -63,7 +66,7 @@ detect_type() {
 is_relevant_path() {
   local path="$1"
   case "$path" in
-    *.claude/*|*templates/*|*guides/*|*/skills/*/SKILL.md|*/agents/*.md|*/commands/*.md)
+    *.claude/*|*.claude-plugin/*|*hooks/*|*templates/*|*guides/*|*/skills/*/SKILL.md|*/agents/*.md|*/commands/*.md)
       return 0
       ;;
     SKILL.md|AGENT.md|agent.md|.mcp.json|hooks.json|plugin.json|settings.json|settings.local.json|CLAUDE.md)
@@ -376,39 +379,97 @@ validate_hooks() {
 
   local valid_events="PreToolUse PostToolUse Stop SubagentStop SessionStart SessionEnd UserPromptSubmit PreCompact"
 
+  local events
+  local prefix=""
+
   # Check if it's plugin format (has "hooks" wrapper) or settings format
   if jq -e '.hooks' "$file" > /dev/null 2>&1; then
-    # Plugin format
-    local events
+    # Plugin format: events under .hooks
     events=$(jq -r '.hooks | keys[]' "$file" | tr -d '\r')
-    for event in $events; do
-      if ! echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
-        echo "  [ERROR] Unknown hook event: '$event'"
-      fi
-    done
-
-    # Check for valid hook structures
-    local hook_count
-    hook_count=$(jq '[.hooks[] | length] | add // 0' "$file" 2>/dev/null || echo 0)
-    if [ "$hook_count" -eq 0 ]; then
-      echo "  [ERROR] No hook configurations found"
-    fi
+    prefix='.hooks'
   else
-    # Settings format - events at top level
-    local events
+    # Settings format: events at top level
     events=$(jq -r 'keys[]' "$file" | tr -d '\r')
-    for event in $events; do
-      if echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
-        local hooks_in_event
-        hooks_in_event=$(jq ".[\"$event\"] | length" "$file")
-        if [ "$hooks_in_event" -eq 0 ]; then
-          echo "  [ERROR] Event '$event' has no hook configurations"
-        fi
-      else
-        echo "  [INFO] Skipping non-event key: '$event'"
-      fi
-    done
+    prefix='.'
   fi
+
+  for event in $events; do
+    local event_path="${prefix}[\"$event\"]"
+
+    # Skip non-event keys (settings format may have description, etc.)
+    if ! echo "$valid_events" | grep -qE "(^| )$event( |$)"; then
+      if [ "$prefix" = "." ]; then
+        echo "  [INFO] Skipping non-event key: '$event'"
+      else
+        echo "  [ERROR] Unknown hook event: '$event'"
+        issues=$((issues + 1))
+      fi
+      continue
+    fi
+
+    # Count matcher entries for this event
+    local matcher_count
+    matcher_count=$(jq "$event_path | length" "$file" 2>/dev/null || echo 0)
+    if [ "$matcher_count" -eq 0 ]; then
+      echo "  [ERROR] Event '$event' has no hook configurations"
+      issues=$((issues + 1))
+      continue
+    fi
+
+    # Validate each matcher entry and its nested hooks
+    for i in $(seq 0 $((matcher_count - 1))); do
+      local hooks_in_entry
+      hooks_in_entry=$(jq -r "$event_path[$i].hooks | length" "$file" 2>/dev/null || echo 0)
+
+      if [ "$hooks_in_entry" -eq 0 ] || [ "$hooks_in_entry" = "null" ]; then
+        echo "  [ERROR] $event_path[$i]: missing 'hooks' array"
+        issues=$((issues + 1))
+        continue
+      fi
+
+      for j in $(seq 0 $((hooks_in_entry - 1))); do
+        local hook_type
+        hook_type=$(jq -r "$event_path[$i].hooks[$j].type // \"\"" "$file" 2>/dev/null || echo "")
+
+        case "$hook_type" in
+          command)
+            local cmd
+            cmd=$(jq -r "$event_path[$i].hooks[$j].command // \"\"" "$file")
+            if [ -z "$cmd" ]; then
+              echo "  [ERROR] $event_path[$i].hooks[$j]: command type requires 'command' field"
+              issues=$((issues + 1))
+            fi
+            ;;
+          prompt)
+            if [ "$event" = "SessionStart" ] || [ "$event" = "Setup" ] || [ "$event" = "SubagentStart" ]; then
+              echo "  [ERROR] $event_path[$i].hooks[$j]: prompt-type hooks are not supported for $event (no conversation context). Use command-type instead."
+              issues=$((issues + 1))
+            fi
+            local prompt_text
+            prompt_text=$(jq -r "$event_path[$i].hooks[$j].prompt // \"\"" "$file")
+            if [ -z "$prompt_text" ]; then
+              echo "  [ERROR] $event_path[$i].hooks[$j]: prompt type requires 'prompt' field"
+              issues=$((issues + 1))
+            fi
+            ;;
+          agent)
+            if [ "$event" = "SessionStart" ] || [ "$event" = "Setup" ] || [ "$event" = "SubagentStart" ]; then
+              echo "  [ERROR] $event_path[$i].hooks[$j]: agent-type hooks are not supported for $event. Use command-type instead."
+              issues=$((issues + 1))
+            fi
+            ;;
+          ""|null)
+            echo "  [ERROR] $event_path[$i].hooks[$j]: missing 'type' field (must be command|prompt|agent)"
+            issues=$((issues + 1))
+            ;;
+          *)
+            echo "  [ERROR] $event_path[$i].hooks[$j]: unknown hook type '$hook_type'"
+            issues=$((issues + 1))
+            ;;
+        esac
+      done
+    done
+  done
 
   if [ "$issues" -eq 0 ]; then
     echo "  [PASS] hooks.json validation passed"
@@ -547,6 +608,7 @@ validate_settings() {
     server_count=$(jq '.mcpServers | length' "$file")
     if [ "$server_count" -eq 0 ]; then
       echo "  [ERROR] mcpServers is empty"
+      issues=$((issues + 1))
     else
       echo "  [INFO] mcpServers: $server_count server(s)"
       local servers
@@ -602,6 +664,7 @@ validate_command() {
   if echo "$first_line" | grep -qiE '^this command will|^this will|^this command is|this command helps'; then
     echo "  [ERROR] Command appears to be written TO the user instead of instructions FOR Claude"
     echo "   -> Write commands as directives: 'Review...', 'Analyze...', 'Create...'"
+    issues=$((issues + 1))
   fi
 
   # Check for YAML frontmatter
@@ -638,6 +701,7 @@ validate_claude_md() {
   # Check for vague content
   if grep -qiE '^# Project$|^# My Project$|^# (A|An|The) ' "$file" | head -1 > /dev/null 2>&1; then
     echo "  [ERROR] Title seems generic — consider a more specific project description"
+    issues=$((issues + 1))
   fi
 
   if [ "$issues" -eq 0 ]; then
@@ -664,6 +728,8 @@ main() {
 
   # No argument → scan all known Claude Code config directories
   scan_all
+  local rc=$?
+  exit $rc
 }
 
 scan_all() {
@@ -770,7 +836,7 @@ validate_one() {
       validate_claude_md "$file_path" || exit_code=$?
       ;;
     *)
-      exit 0
+      return 0
       ;;
   esac
 
@@ -815,28 +881,63 @@ validate_one() {
         ;;
     esac
     echo "━━━ Guidance ━━━" >&2
-    echo "Issues found. Read the relevant spec:" >&2
+    echo "Issues found. Review the errors above and fix each one." >&2
     echo "" >&2
-    echo "  General design philosophy:" >&2
+    echo "  Reference specs:" >&2
     echo "    .claude/skills/design-philosophy/SKILL.md" >&2
     if [ -n "$guide" ]; then
-      local guide_path=""
-      if [ -f "guides/$guide" ]; then
-        guide_path="guides/$guide"
-      elif [ -f ".claude/devkit-guides/$guide" ]; then
-        guide_path=".claude/devkit-guides/$guide"
-      fi
-      if [ -n "$guide_path" ]; then
-        echo "  $file_type specification → $guide_path" >&2
-        echo "    Key sections: $section" >&2
-      fi
+      echo "    $guide" >&2
+      echo "    → Key sections: $section" >&2
     fi
+    echo "" >&2
+    echo "  Quick fixes by type:" >&2
+    case "$file_type" in
+      skill)
+        echo "    • Names: kebab-case only — 'my-skill' not 'My_Skill'" >&2
+        echo "    • Description: third person, no XML, be specific" >&2
+        echo "    • Body: imperative style — 'Extract text' not 'You should extract text'" >&2
+        echo "    • Pick one default approach, mention alternatives after" >&2
+        echo "    • No time-sensitive dates in body" >&2
+        ;;
+      agent)
+        echo "    • Name: 3-50 chars, kebab-case" >&2
+        echo "    • Description: must include <example> blocks with <commentary>" >&2
+        echo "    • Model: inherit|sonnet|opus|haiku" >&2
+        echo "    • Color: blue|cyan|green|yellow|magenta|red" >&2
+        ;;
+      settings)
+        echo "    • Hooks need: type (command|prompt|agent) + matching field (command|prompt)" >&2
+        echo "    • Hook events: PreToolUse, PostToolUse, Stop, etc." >&2
+        echo "    • Empty command field is invalid" >&2
+        ;;
+      hooks)
+        echo "    • Events: PreToolUse, PostToolUse, Stop, SubagentStop, SessionStart/End, etc." >&2
+        echo "    • Each hook entry needs: type (command|prompt|agent) + matching field" >&2
+        echo "    • SessionStart/Setup/SubagentStart: command-type only (no prompt)" >&2
+        ;;
+      mcp)
+        echo "    • Must be valid JSON syntax" >&2
+        echo "    • stdio server: needs 'command' field" >&2
+        echo "    • http/sse server: needs 'url' field" >&2
+        ;;
+      command)
+        echo "    • Write as instructions FOR Claude, not messages TO the user" >&2
+        echo "    • Start with action verbs: 'Review...', 'Analyze...', 'Create...'" >&2
+        ;;
+      plugin)
+        echo "    • Name must be kebab-case: 'my-plugin' not 'My_Plugin'" >&2
+        ;;
+      claude-md)
+        echo "    • CLAUDE.md must be at least 3 lines with project info" >&2
+        echo "    • Include: project purpose, conventions, key rules" >&2
+        ;;
+    esac
     echo "━━━━━━━━━━━━━━" >&2
-    echo "[RESULT] $exit_code issue(s) found — see guides above for correct patterns." >&2
-    exit 2
+    echo "[RESULT] $exit_code issue(s) found — see Quick fixes above for how to resolve." >&2
+    return 2
   else
     echo "[RESULT] All checks passed."
-    exit 0
+    return 0
   fi
 }
 
